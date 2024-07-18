@@ -1,0 +1,81 @@
+.trans_btn_box
+{
+    padding-top: 10px;
+}
+.trans_btn
+{
+    width: 100%;
+    font-size: 25px;
+    margin-top: 30px;
+} 
+#line
+{
+    width: 70%;
+}
+#numbers
+{
+    width: 22%;
+}
+.input_color
+{
+    background-color: #fff;
+}
+select
+{
+    height: 1.3em;
+}
+select,p
+{
+    font-size: 30px;
+}
+option
+{
+    font-size: 30px;
+    /* background-color: blue; */
+}
+p
+{
+    margin-top: 15px;
+}
+.lavel
+{
+    width: 100%;
+}
+.main_contents
+{
+    margin-top: 1%;
+    background-color: #ADD8E6;
+    padding: 2%;
+    border-radius: 10px;
+}
+.back_btn
+{
+    width: 2.5%;
+    margin-left: 1%;
+    vertical-align: middle;
+    color: #000;
+}
+.browser_back_area a
+{
+    color: #000;
+}
+
+.browser_back_area span
+{
+    vertical-align: -2px;
+    font-size: 18px;
+}
+.submit_btn
+{
+    color: #fff;
+    background-color: #8BA7BD;
+    border: 1px solid #8BA7BD;
+    border-radius: 3px;
+}
+.submit_btn:hover
+{
+    color: #fff;
+    background-color: #617584;
+    border: 1px solid #617584;
+    border-radius: 3px;
+}

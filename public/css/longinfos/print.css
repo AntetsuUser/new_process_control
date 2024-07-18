@@ -1,0 +1,196 @@
+
+/* 戻るボタン */
+.back_btn {
+    width: 2.5%;
+    margin-left: 1%;
+    vertical-align: middle;
+    color: #000;
+}
+
+.browser_back_area a {
+    color: #000;
+}
+
+.browser_back_area span {
+    vertical-align: -2px;
+    font-size: 18px;
+}
+
+/* 印刷エリア */
+.print_main_area {
+    text-align: center;
+    width: 95%;
+    /* break-after: page; */
+    /* display: block; */
+}
+
+/* 印刷ボタン */
+.btn--orange,
+a.btn--orange {
+    color: #fff;
+    background-color: #009C89;
+    padding: 10px 30px;
+}
+
+.btn--orange:hover,
+a.btn--orange:hover {
+    color: #fff;
+    background: #016d60;
+    padding: 10px 30px;
+}
+/* タイトル */
+.title {
+    font-weight: 500;
+    font-size: 50px;
+    /* break-after: page;
+    display: block; */
+}
+.title:first-child {
+    font-weight: 500;
+    font-size: 50px;
+    /* break-after:auto; */
+}
+#print_main>p
+{
+    margin-top: 1%;
+}
+/* テーブル */
+table {
+    margin: 0 auto;
+    width: 800px;
+    height: 450px;
+    position: relative;
+    text-align: center;
+}
+table,
+td,
+th {
+    border-collapse: collapse;
+    border: 1px solid #333;
+}
+th {
+    font-size: 28px;
+    font-weight: bold;
+    width: 140px;
+    vertical-align: middle
+}
+
+td {
+    font-size: 25px;
+    font-weight: bold;
+    width: 270px;
+    vertical-align: middle
+}
+.large_display
+{
+    font-size: 47px;
+    height: 100px;
+    font-family: sans-serif;
+}
+.big {
+    font-size: 35px;
+    height: 80px;
+    font-family: sans-serif;
+}
+.th_small
+{
+    height: 50px;
+}
+
+
+.table_border
+{
+    border: solid 1px #000;
+    font-family: sans-serif;
+}
+.table_border_bottom
+{
+    border-bottom: solid 1px #000;
+    font-family: sans-serif;
+}
+.table_border_right 
+{
+    border-right: solid 1px #000;
+    font-family: sans-serif;
+}
+.row
+{
+    font-size: 28px;
+    font-weight: 600;
+}
+.div_big
+{
+    font-size: 55px;
+    font-weight: bold;
+}
+.div_big2 {
+    font-size: 40px;
+    font-weight: bold;
+}
+.padding
+{
+    padding: 1% 0;
+}
+.table
+{
+    width: 80%;
+}
+canvas
+{
+    margin-top: 1px;
+}
+.span_text
+{
+    font-size: 25px;
+}
+.page_break
+{
+    page-break-after: always;
+}
+.page_break:last-child
+{
+    page-break-after: avoid;
+}
+@media (min-width: 576px) 
+{
+    .col-sm-2-5 {
+        flex: 0 0 22.2%;
+        max-width: 22.2%;
+    }
+    .col-sm-9-5 {
+        flex: 0 0 77.8%;
+        max-width: 77.8%;
+    }
+
+}
+
+/* 印刷用css */
+@media print 
+{
+    @page {
+        size: auto !important;
+        /* size: landscape !important; */
+        /* margin: 1px; */
+    }
+    .browser_back_area {
+        display: none;
+    }
+
+    .sending_button {
+        display: none;
+    }
+    #print_btn
+    {
+        display: none;
+    }
+    /* QR */
+    .qr_area {
+        z-index: -9999;
+    }
+    .py-4
+    {
+        padding-bottom: 0px !important;
+        padding-top: 0px !important;
+    }
+
+}

@@ -1,0 +1,158 @@
+.print_title
+{
+  width: 100%;
+    font-size: 30px;
+    text-align: center;
+}
+.contents_title
+{
+    font-size: 30px;
+    text-align: center;
+}
+.addition
+{
+  margin-bottom: 1%;
+  background-color: #FF8C00;
+  border-color: #FF8C00;
+}
+.addition
+{
+  background-color: #ffa333;
+  border-color: #ff9718;
+}
+.table_area
+{
+    height: 450px;
+    overflow:scroll;
+}
+table
+{
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+}
+.th_fixed
+{
+    position: sticky;
+    top: 0;
+    left: 0;
+}
+th
+{
+    background-color: #86A2B8;
+}
+th,td
+{
+    padding: 5px;
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+    white-space: nowrap;
+}
+.back_btn
+{
+  width: 2.5%;
+  margin-left: 1%;
+  vertical-align: middle;
+  color: #000;
+}
+.browser_back_area a
+{
+  color: #000;
+}
+.browser_back_area span
+{
+  vertical-align: -2px;
+  font-size: 18px;
+}
+.filtered_out
+{
+  display: none;
+}
+.filter_area
+{
+  margin-bottom: 1%;
+}
+.filter_button 
+{
+  padding: 0 3px;
+  font-size: 12px;
+  margin-left: 2px;
+
+}
+.filter_from
+{
+  background-color: #fff;
+  border: #000 solid 1px;
+  position: absolute;
+  padding: 8%;
+  z-index: 10;
+  left: -85px;
+}
+.filter_th
+{
+  position: relative;
+}
+.filter_from_none
+{
+  display: none;
+  
+}
+.radio_group
+{
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px  solid #000;
+}
+.input_text
+{
+  display: block;
+  width: 100%;
+  margin: 3% 0;
+}
+
+.btn_yellow
+{
+  background-color: yellow;
+}
+.search_area
+{
+  display: flex;
+  justify-content: space-between;
+  width: 50%;
+}
+
+/* 0313 石原 追加　入力、未入力ラジオボタンcss */
+.input_seitch input {
+    display: none;
+}
+
+.input_seitch label {
+    display: block;
+    float: left;
+    cursor: pointer;
+    margin: 0;
+    padding: 10px;
+    background: #bdc3c7;
+    color: #869198;
+    font-size: 16px;
+    text-align: center;
+    line-height: 1;
+    transition: .2s;
+}
+
+.input_seitch label:first-of-type {
+    border-radius: 3px 0 0 3px;
+}
+
+.input_seitch label:last-of-type {
+    border-radius: 0 3px 3px 0;
+}
+
+.input_seitch input[type="radio"]:checked+.switch-on {
+    background-color: #86A2B8;
+    color: #fff;
+}
+
+.input_seitch input[type="radio"]:checked+.switch-off {
+    background-color: #86A2B8;
+    color: #fff;
+}

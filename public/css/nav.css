@@ -1,0 +1,22 @@
+.nav_back
+{
+  background-color: #536E83;
+}
+.navbar {
+    border-radius: 0px;
+    margin-bottom: 5px;
+}
+ /* タブレットの設定
+@media screen and (max-width: 1024px) and (orientation: landscape)
+{
+  #app > nav > div
+  {
+      zoom:100%;
+  }
+  body{
+    zoom:80%;
+  }
+  .container-fluid{zoom:80%}
+  .container{zoom:83%}
+  
+} */

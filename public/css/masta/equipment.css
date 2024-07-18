@@ -1,0 +1,167 @@
+body
+{
+    overflow: hidden;
+}
+.contents_title
+{
+    font-size: 30px;
+    text-align: center;
+    width: 100%;
+}
+.addition
+{
+  margin-bottom: 1%;
+  background-color: #009C89;
+  border-color: #009C89;
+  float: left;
+}
+.addition:hover
+{
+  background-color: #016d60;
+  border-color: #016d60;
+}
+.update_btn
+{
+  border-radius: 5px;
+}
+.update_btn:hover
+{
+  border-radius: 5px;
+}
+.table_area
+{
+    width: 100%;
+    height: 370px;
+    overflow:auto;
+}
+table
+{
+    width: 100%;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.th_fixed
+{
+    position: sticky;
+    top: 0;
+    left: 0;
+}
+th
+{
+    background-color: #86A2B8;
+}
+th,td
+{
+    padding: 5px;
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+}
+
+
+.input_btn
+{
+    margin-top: 15px;
+    text-align: right;
+    margin-right: 10px;
+}
+.form_flex
+{
+  display: flex;
+}
+select
+{
+  width: 170px;
+}
+.sub_flex
+{
+  padding: 5px;
+  width: 100%;
+}
+div:nth-child(2) > input
+{
+  width: 100%;
+}
+.back_btn
+{
+  width: 2.5%;
+  margin-left: 1%;
+  vertical-align: middle;
+  color: #000;
+}
+.browser_back_area a
+{
+  color: #000;
+}
+
+.browser_back_area span
+{
+  vertical-align: -2px;
+  font-size: 18px;
+}
+
+
+/* 追加更新ページ */
+.flex_area
+{
+  display: flex;
+}
+.edit_title
+{
+  text-align: center;
+}
+
+.input_area
+{
+  margin: 1%;
+}
+.text_area
+{
+  width: 100%;
+}
+.add_btn
+{
+  text-align: right;
+}
+.upsert
+{
+  border: #000 solid 1px;
+  border-radius: 5%;
+  padding: 3%;
+}
+.btn_flex
+{
+  display: flex;
+  justify-content: space-between;
+}
+
+
+
+/* 確認ページ */
+.confirm
+{
+  border: #000 solid 1px;
+  border-radius: 5%;
+  padding: 3%;
+}
+.confirm_item
+{
+  width: 50%;
+  font-size: 24px;
+}
+.confirm_contents_title
+{
+  font-size: 20px;
+  width: 30%;
+}
+.flex
+{
+  display: flex;
+  justify-content: space-around;
+}
+h1
+{
+  margin-bottom: 5%;
+}
+

@@ -1,0 +1,314 @@
+
+/* ----------------------品目マスタ---------------------------- */
+/* モーダル関連 */
+.modal
+{
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content
+{
+  margin: 0% auto;
+  width: 68%;
+  box-shadow: 0 5px 8px 0 rgba(0, 0, 0, 0.2), 0 7px 20px 0 rgba(0, 0, 0, 0.17);
+  animation-name: modalopen;
+  animation-duration: 1s;
+}
+
+@keyframes modalopen
+{
+  from
+  {
+    opacity: 0
+  }
+
+  to
+  {
+    opacity: 1
+  }
+}
+
+.modal-header h1
+{
+  margin: 1rem 0;
+}
+
+.modal-header
+{
+  background: lightblue;
+  padding: 3px 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.modalClose
+{
+  font-size: 2rem;
+}
+
+.modalClose:hover
+{
+  cursor: pointer;
+}
+
+.modal-body
+{
+  padding: 10px 20px;
+  color: black;
+}
+
+.main_box
+{
+  background-color: #E0EAF6;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 3px;
+}
+
+.sub_box1
+{
+  background-color: #F8E5D8;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 3px;
+}
+input,select{
+  background-color: #fff;
+}
+.sub_box2
+{
+  background-color: #E4EFDC;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 3px;
+}
+/* ------------ */
+
+/* テーブル */
+.table_area
+{
+  width: 100%;
+}
+.table_area a
+{
+  margin-left: 5%;
+  margin-bottom: 1%;
+  background-color: #009C89;
+  border-color: #009C89;
+}
+.table_area a:hover
+{
+  background-color: #016d60;
+  border-color: #016d60;
+}
+.update_btn
+{
+
+  border-radius: 5px;
+}
+.update_btn:hover
+{
+  border-radius: 5px;
+}
+.table_div
+{
+  overflow: scroll;
+  width: 90%;
+  margin: 0 auto;
+  height: 70%;
+}
+.contents_title
+{
+    font-size: 30px;
+    text-align: center;
+    width: 100%;
+}
+table {
+    width: 100%;
+    white-space: nowrap;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-bottom: 1px #000 solid;
+    border-right: 1px #000 solid;
+  }
+thead th ,tbody td
+{
+  padding: 10px;
+  border-top: 1px #000 solid;
+  border-left: 1px #000 solid;
+}
+th
+{
+  background-color:#86A2B8;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 1px #000 solid;
+}
+tbody 
+{
+  border-top: none;
+}
+.modalOpen
+{
+  background-color: #EEE8A9;
+  border-color: #EEE8A9;
+  color: #000;
+  border-radius: 5px;
+}
+
+.modalOpen:hover
+{
+  background-color: #B5B074 ;
+  border-color: #B5B074 ;
+  color: whitesmoke;
+  border-radius: 5px;
+}
+.back_btn
+{
+  width: 2.5%;
+  margin-left: 1%;
+  vertical-align: middle;
+  color: #000;
+}
+.browser_back_area a
+{
+  color: #000;
+}
+.browser_back_area span
+{
+  vertical-align: -2px;
+  font-size: 18px;
+}
+.browser_back_area
+{
+  margin-bottom: 10px;
+}
+/* ----------------------品目マスタ---------------------------- */
+
+/* ----------------------品目追加----------------------------- */
+
+.masta_number_title
+{
+  font-size: large;
+}
+.masta_number .masta_number_area .number_item
+{
+  margin-bottom: 20px;
+}
+
+.masta_number .masta_number_area .number_item select
+{
+  width: 100%;
+}
+
+.masta_number .masta_number_area .number_item input
+{
+  width: 100%;
+}
+.masta_number .masta_number_area .number_item input
+{
+  margin-top: 5px;
+}
+
+.masta_number .masta_number_area .number_item .number_item_title
+{
+  margin-bottom: 4px;
+}
+
+
+.masta_number .masta_number_area {
+  padding: 15px;
+  margin-top: 10px;
+}
+
+.masta_number_area__blue {
+  background-color: #E0EAF6;
+}
+
+.masta_number_area__orange {
+  background-color: #F8E5D8;
+}
+
+.masta_number_area__green {
+  background-color: #E4EFDC;
+}
+
+.required
+{
+  color: #ff0000;
+}
+/*  */
+
+.input_window
+{
+  display: none;
+}
+.flax
+{
+  display: flex;
+  height: 100px;
+  background-color: #86A2B8;
+  
+}
+.left_window
+{
+  width: 50%;
+  overflow: auto;
+  border-right: #000 solid 1px;
+}
+
+.right_window
+{
+  width: 50%;
+  overflow: auto;
+}
+.input_window input 
+{
+  width: 5% !important;
+  
+}
+.close_btn
+{
+  width: 100%;
+}
+.option
+{
+  background-color: #aed1ec;
+  margin: 1%;
+  border: #000 solid 1px;
+  border-radius: 5%;
+}
+.update_btn
+{
+  width: 49%;
+}
+
+
+/* ---------------------品目追加----------------------------- */
+
+/* ---------------------品目確認画面----------------------------- */
+.masta_number .masta_number_area .number_item .number_item_value
+{
+  background-color: #fff;
+  width: 100%;
+  font-size: 24px;
+}
+.confirm_item_neme
+{
+  font-size: 20px;
+}
+.masta_number .masta_number_area .number_item .confirm_item_value
+{
+  padding-left: 10px;
+}
+
+
