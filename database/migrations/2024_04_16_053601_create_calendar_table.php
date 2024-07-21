@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('calendar', function (Blueprint $table) {
             $table->id();
             $table->date('day')->comment('日付');
+            $table->timestamps();
         });
     }
 

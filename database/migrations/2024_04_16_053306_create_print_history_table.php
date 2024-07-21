@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('parent_name',255)->comment('親品番');
             $table->string('child_part_number1',255)->comment('子品番1');
             $table->string('child_part_number2',255)->comment('子品番2');
-            $table->string('child_part_number2',255)->comment('納期');
+            $table->string('delivery_date',255)->comment('納期');
             $table->integer('processing_quantity')->comment('加工数');
             $table->date('start_date')->comment('着手日');
             $table->unsignedBigInteger('woker_id')->comment('作業者_id');

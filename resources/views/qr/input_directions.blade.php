@@ -55,39 +55,41 @@
                             
                             <tr>
                                 <th>品名</th>
-                                <td></td>
+                                <td>{{ $direction_date["item_name"] }}</td>
                                 <th>品番</th>
-                                <td></td>
+                                <td>{{ $direction_date["processing_item"] }}</td>
                             </tr>
-                            <tr id="limited_item" class="">
-                                <th>シャフト</th>
-                                <td></td>
-                                <th>ホールド</th>
-                                <td></td>
-                            </tr>
+                            @if ($direction_date["item_name"] == "シャフトアッシー")
+                                <tr id="limited_item" class="">
+                                    <th>シャフト</th>
+                                    <td>{{ $direction_date["child_part_number1"] }}</td>
+                                    <th>ホールド</th>
+                                    <td>{{ $direction_date["child_part_number2"] }}</td>
+                                </tr>
+                            @endif
                             <tr>
                                 <th>固有ID</th>
-                                <td></td>
+                                <td>{{ $direction_date["characteristic_id"] }}</td>
                                 <th>納期日</th>
-                                <td></td>
+                                <td>{{ $direction_date["delivery_date"] }}</td>
                             </tr>
                             <tr>
                                 <th>工程</th>
-                                <td></td>
+                                <td>{{ $direction_date["process"] }}</td>
                                 <th>W/C</th>
-                                <td></td>
+                                <td>{{ $direction_date["workcenter"] }}</td>
                             </tr>
                             <tr>
                                 <th>加工数</th>
-                                <td></td>
+                                <td>{{ $direction_date["processing_quantity"] }}</td>
                                 <th class="asterisk_box"><span class="asterisk">*</span>良品</th>
-                                <td></td>
+                                <td><input type="text" name="good_product" id="" value="" placeholder="0" inputmode="numeric"></td>
                             </tr>
                             <tr>
                                 <th class="asterisk_box"><span class="asterisk">*</span>加不</th>
-                                <td></td>
+                                <td><input type="text" name="poor_processing" id="" value="" placeholder="0" inputmode="numeric"></td>
                                 <th class="asterisk_box"><span class="asterisk">*</span>材不</th>
-                                <td></td>
+                                <td><input type="text" name="poor_material" id="" value="" placeholder="0" inputmode="numeric"></td>
                             </tr>
 
                         </table>

@@ -16,7 +16,6 @@ table{
 {
     font-size: 24px;
     margin: 0 auto;
-    width: 70%;
 }
 
 .main_tbl th, td 
@@ -54,13 +53,11 @@ input
     color: #ffffff;
     font-size: 22px;
     margin-left: 160px;
-    margin-right: 140px;
     text-decoration:none;
 }
 .button_arae
 {
     margin: 0 auto;
-    text-align: center;
     margin-top: 40px;
 }
 .back_gray
