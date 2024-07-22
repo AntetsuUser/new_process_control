@@ -38,6 +38,7 @@
                     <div class="confirm_item">{{ $data["store"] }}</div>
                 </div>
                 <form action="">
+                    @csrf
                     <input type="hidden" name="factory_id" value="{{ $data["factory_id"] }}">
                     <input type="hidden" name="department_id" value="{{ $data["department_id"] }}">
                     <input type="hidden" name="store" value="{{ $data["store"] }}">

@@ -15,8 +15,6 @@ class QrReadController extends Controller
     {
         //
         $this->_qrreadService = $qrreadService;
-        
-        
     }
 
     //QRカメラ画面
@@ -31,5 +29,13 @@ class QrReadController extends Controller
         $direction_date = $this->_qrreadService->getdirection_date($characteristic_id);
         // dd($direction_date);
         return view('qr.input_directions',compact('direction_date'));
+    }
+
+    //入力完了画面
+    public function input_succes(Request $request)
+    {  
+        $data = $request->all();
+        $this->_qrreadService->achievement_application($data);
+        return view('qr.input_succes');
     }
 }

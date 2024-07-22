@@ -30,7 +30,7 @@
                     <!-- モーダル内部のコンテンツ -->
                     <div class="modal-content">
                         <p id="fix_title" class="fix_title">以下の内容で送信してよろしいですか？</p>
-                        <table class="fix_table">
+                        <table class="fix_table main_tbl">
                             <tr id="processing_number">
                                 <td class="sub_text">加工数</td>
                             </tr>
@@ -50,7 +50,14 @@
             </div>
             <div class="col-md-10 outer">
                 <div class="main_contents">
-                    <form id="achievement" class="form" action="http://192.168.3.91:8002/achievement_entry" method="post">
+                    <form id="achievement" class="form" action="{{ route('qr.input_succes') }}" method="post">
+                        @csrf
+                        <input type="hidden" name="unique_id" value="{{ $direction_date["characteristic_id"] }}">
+                        <input type="hidden" name="parent_name" value="{{ $direction_date["parent_name"] }}">
+                        <input type="hidden" name="create_day" value="{{ $direction_date["capture_date"] }}">
+                        <input type="hidden" name="delivery_date" value="{{ $direction_date["delivery_date"] }}">
+                        <input type="hidden" name="process" value="{{ $direction_date["process"] }}">
+                        <input type="hidden" name="process_number" value="">
                         <table class="main_tbl" id="main_tbl">
                             
                             <tr>
@@ -81,7 +88,7 @@
                             </tr>
                             <tr>
                                 <th>加工数</th>
-                                <td>{{ $direction_date["processing_quantity"] }}</td>
+                                <td><input type="text" name="processing" id="" value="{{ $direction_date['processing_quantity'] }}" placeholder="0" disabled="readonly"></td>
                                 <th class="asterisk_box"><span class="asterisk">*</span>良品</th>
                                 <td><input type="text" name="good_product" id="" value="" placeholder="0" inputmode="numeric"></td>
                             </tr>
@@ -104,5 +111,11 @@
     </div>
 
 
+
+@if(config('app.env') === 'production')
+<script src="{{ secure_asset('./js/qr/input_confirmation.js') }}"></script>
+@else
+<script src="{{ asset('./js/qr/input_confirmation.js') }}"></script>
+@endif
 
 @endsection

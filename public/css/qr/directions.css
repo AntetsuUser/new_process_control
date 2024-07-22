@@ -1,40 +1,31 @@
 /* ヘッダー部分 */
-.navbar
-{
+.navbar {
     background-color: #536E83;
 }
-table{
-  width: 100%;
+
+table {
+    width: 100%;
 }
 
-.outer
-{
-    padding: 20px;              /* 余白指定 */
+.outer {
+    padding: 20px; /* 余白指定 */
 }
 
-.main_tbl 
-{
+.main_tbl {
     font-size: 24px;
     margin: 0 auto;
 }
 
-.main_tbl th, td 
-{
+.main_tbl th, .main_tbl td {
     border: solid 1px black;
     padding: 15px 5px;
 }
-/* 
-.main_tbl th 
-{
-    font-size: 24px;
-    width: 15%;
-    text-align: center;
-} */
-th{
+
+th {
     background-color: aliceblue;
 }
-input
-{
+
+input {
     border: none;
     font-size: 22px;
     background-color: #ffffff;
@@ -42,9 +33,9 @@ input
     -webkit-text-fill-color: rgb(139, 139, 139);
     opacity: 1;
 }
+
 /* ボタン */
-.button
-{
+.button {
     width: 160px;
     height: 60px;
     background-color: #536E83;
@@ -53,128 +44,130 @@ input
     color: #ffffff;
     font-size: 22px;
     margin-left: 160px;
-    text-decoration:none;
+    text-decoration: none;
 }
-.button_arae
-{
+
+.button_arae {
     margin: 0 auto;
     margin-top: 40px;
 }
-.back_gray
-{
+
+.back_gray {
     background-color: #D9D9D9;
 }
-.asterisk
-{
+
+.asterisk {
     color: red;
 }
-.no_display
-{
+
+.no_display {
     display: none;
 }
-.a_button
-{
+
+.a_button {
     padding: 15px 39px;
 }
+
 /* モーダルと背景の指定 */
-.modal{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  background: rgba(0,0,0,50%);
-  padding: 40px 20px;
-  overflow: auto;
-  opacity: 0;
-  visibility: hidden;
-  transition: .3s;
-  box-sizing: border-box;
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 40px 20px;
+    overflow: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition: .3s;
+    box-sizing: border-box;
 }
 
 /* モーダルの擬似要素の指定 */
-.modal:before{
-  content: "";
-  display: inline-block;
-  vertical-align: middle;
-  height: 100%;
-  margin-left: -0.2em;
+.modal:before {
+    content: "";
+    display: inline-block;
+    vertical-align: middle;
+    height: 100%;
+    margin-left: -0.2em;
 }
 
 /* クラスが追加された時の指定 */
-.modal.is-active{
-  opacity: 1;
-  visibility: visible;
+.modal.is-active {
+    opacity: 1;
+    visibility: visible;
+    display: block;
 }
 
 /* モーダル内側の指定 */
-.modal-container{
-  position: relative;
-  display: inline-block;
-  vertical-align: middle;
-  max-width: 600px;
-  width: 90%;
+.modal-container {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    max-width: 600px;
+    width: 90%;
 }
 
 /* モーダルを閉じるボタンの指定 */
-.modal-close{
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  top: -20px;
-  right: -20px;
-  width: 40px;
-  height: 40px;
-  color: #fff;
-  background: #000;
-  border-radius: 50%;
-  cursor: pointer;
+.modal-close {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: -20px;
+    right: -20px;
+    width: 40px;
+    height: 40px;
+    color: #fff;
+    background: #000;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+
 }
 
 /* モーダルのコンテンツ部分の指定 */
-.modal-content{
-  background: #fff;
-  /* text-align: left; */
-  line-height: 1.8;
-  padding: 20px;
+.modal-content {
+    background: #fff;
+    line-height: 1.8;
+    padding: 20px;
 }
 
 /* モーダルのコンテンツ部分のテキストの指定 */
-.modal-content p{
-  margin: 1em 0;
+.modal-content p {
+    margin: 1em 0;
 }
 
-.fix_button
-{
-  margin: 5% 0 0 auto;
-  background-color: #536E83;
-  border: none;
-  border-radius: 5px;
-  color: #ffffff;
-  width: 20%;
-  height: 40px;
+.fix_button {
+    margin: 5% 0 0 auto;
+    background-color: #536E83;
+    border: none;
+    border-radius: 5px;
+    color: #ffffff;
+    width: 20%;
+    height: 40px;
 }
-.sub_text
-{
-  width: 40%;
-  font-size: 20px;
-  font-weight: 700;
-  background-color: aliceblue;
+
+.sub_text {
+    width: 40%;
+    font-size: 20px;
+    font-weight: 700;
+    background-color: aliceblue;
 }
-.fix_title
-{
-  font-weight: 700;
-  font-size: 24px;
+
+.fix_title {
+    font-weight: 700;
+    font-size: 24px;
 }
-.fix_table
-{
-  width: 80%;
-  margin: 0 auto;
+
+.fix_table {
+    width: 80%;
+    margin: 0 auto;
 }
-.fix_value
-{
-  font-size: 20px;
-  font-weight: 700;
+
+.fix_value {
+    font-size: 20px;
+    font-weight: 700;
 }

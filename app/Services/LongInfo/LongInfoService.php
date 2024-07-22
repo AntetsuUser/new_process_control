@@ -484,9 +484,6 @@ class LongInfoService
         //////////////////////////////////////////////////////////////////////
         //工程番号から減らす工程在庫のカラム名を入れる変数
         $reduce_stock_name;
-        $reduce_stock_name2;
-        $reduce_stock_name3;
-        $reduce_stock_name4;
         // 材料
         if (false !== strpos($process, '102')) {
             if ($join_flag == 1) {

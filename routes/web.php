@@ -53,8 +53,10 @@ route::prefix('/qr')->controller(QrReadController::class)->group(function()
 {
     //QRカメラ読取画面
     route::get('/qrcamera','qrcamera')->name('qr.qrcamera');
-
+    //実績入力画面
     route::get('/input_directions','input_directions')->name('qr.input_directions');
+    //入力完了画面
+    route::post('/input_succes','input_succes')->name('qr.input_succes');;
     
 });
 
