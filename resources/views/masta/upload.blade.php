@@ -11,6 +11,10 @@
 @endif
 
 @endsection
+@php
+    // セッションから `tab` を取得し、`null` の場合は `'all'` をデフォルト値として設定
+    $currentTab = session('tab', 'all');
+@endphp
 
 @section('content')
 <div class="browser_back_area">
@@ -19,9 +23,9 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="tabs">
-            <input id="all" type="radio" name="tab_item" checked>
+            <input id="all" type="radio" name="tab_item" {{ $currentTab == 'all' ? 'checked' : '' }}>
             <label class="tab_item" for="all">長期情報</label>
-            <input id="shipment" type="radio" name="tab_item">
+            <input id="shipment" type="radio" name="tab_item" {{ $currentTab == 'shipping' ? 'checked' : '' }}>
             <label class="tab_item" for="shipment">出荷情報アップロード</label>
             <input id="material_ledger" type="radio" name="tab_item">
             <label class="tab_item" for="material_ledger">材料台帳</label>
@@ -33,6 +37,11 @@
                     <form id="form_upload" action="{{ route('masta.longinfo_upload') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="contents_margin contents">
+                            @if (session('message_all'))
+                                <div class="alert alert-{{ session('message_type') }}">
+                                    {{ session('message_all') }}
+                                </div>
+                            @endif
                             <div class="row form_range">
                                 <div class="col-md-10">
                                     <input type="hidden" name="selection_elements" id="selection_elements" value="1">
@@ -58,11 +67,10 @@
                         <tbody>
                             <?php $count = 0; ?>
                             @foreach ($longinfo_log as $value)
-                            
                             <tr>
-                                <td>{{ $value->category }}</td>
-                                <td>{{ $value->file_name }}</td>
-                                <td>{{ $value->upload_day }}</td>
+                                <td>{{ $value["category"] }}</td>
+                                <td>{{ $value["file_name"] }}</td>
+                                <td>{{ $value["upload_day"] }}</td>
                                 <?php $count = $count + 1; ?>
                             </tr>
                             @endforeach
@@ -81,70 +89,88 @@
             <!-- 出荷情報アップロード -->
             <div class="tab_content" id="shipment_content">
                 <div class="tab_content_description">
-                    <form id="form_upload_shipping" action="#" method="post" enctype="multipart/form-data">
+                    <form id="form_upload_shipping" action="{{ route('masta.shipping_upload') }}" method="post" enctype="multipart/form-data">
                         @csrf
                         <!-- アップロード番号 -->
                         <input type="hidden" name="selection_elements" id="selection_elements" value="2">
-
+                        @if (session('message_shipment'))
+                            <div class="alert alert-{{ session('message_type') }}">
+                                {{ session('message_shipment') }}
+                            </div>
+                        @endif
                         <div class="contents_margin contents">
                             <div class="row form_range">
-                                <div class="col-md-10">
+                                <div class="col-md-8">
                                     <div class="row">
-                                        <div class="col-md-12">
-                                            <input type="file" name="file" id="shipment_file" value="選択" class="submit_btn">
+                                        <div class="col-md-6 align-items-center file_area">
+                                            <input type="file" name="shipment_file" id="shipment_file" value="選択" class="submit_btn">
                                         </div>
-                                        <div class="col-md-12">
+                                        <div class="col-md-6 day_area">
                                             <div class="row">
                                                 <div class="col-md-6">
-                                                    <div class="boxes">
-                                                        <input type="checkbox" name="delivery[]" id="delivery1" value="0">
-                                                        <label for="delivery1">1便</label>
+                                                    <label for="">開始日</label>
+                                                    <input type="date" name="delivery_day" id="delivery_day"value="{{ old('delivery_day') }}">
 
-                                                        <input type="checkbox" name="delivery[]" id="delivery2" value="1">
-                                                        <label for="delivery2">2便</label>
-
-                                                        <input type="checkbox" name="delivery[]" id="delivery3" value="2">
-                                                        <label for="delivery3">3便</label>
-
-                                                        <input type="checkbox" name="delivery[]" id="delivery4" value="3">
-                                                        <label for="delivery4">4便</label>
-
-                                                    </div>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <input type="date" name="delivery_day" id="delivery_day">
+                                                    <label for="">終了日</label>
+                                                    <input type="date" name="delivery_day_end" id="delivery_day_end"value="{{ old('delivery_day_end') }}">
                                                 </div>
+
                                             </div>
                                         </div>
                                     </div>
-
                                 </div>
-                                <div class="col-md-2 btn_class">
-                                    <button type="submit" class="add_btn">送信</button>
+                                <div class="col-md-4 file_area">
+                                    <button type="submit" class="add_btn">アップロード</button>
+                                    <button type="button" class="add_btn" onclick="window.location.href='{{ route('masta.clearing_application') }}'">出荷確認</button>
                                 </div>
 
                             </div>
                         </div>
                     </form>
+                    @error('shipment_file')
+                        <div class="ms-3 text-danger">{{ $message }}</div>
+                    @enderror
+                    @error('delivery_day')
+                        <div class="ms-3 text-danger">{{ $message }}</div>
+                    @enderror
+                    @error('delivery_day_end')
+                        <div class="ms-3 text-danger">{{ $message }}</div>
+                    @enderror
                     <table class="contents_margin">
                         <thead>
                             <tr>
                                 <th>ファイル種別</th>
                                 <th>ファイル名</th>
-                                <th>要求納期</th>
-                                <th>便</th>
+                                <th>開始日</th>
+                                <th>終了日</th>
                                 <th>アップロード日時</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @for ($i=0; $i < 10; $i++) <tr>
+                            <?php $count = 0; ?>
+                            @foreach ($shipment_log as $value)
+                            <tr>
+
+                                <td>{{ $value["category"] }}</td>
+                                <td>{{ $value["file_name"] }}</td>
+                                <td>{{ $value["start_date"] }}</td>
+                                <td>{{ $value["end_date"] }}</td>
+                                <td>{{ $value["upload_day"] }}</td>
+                                <?php $count = $count + 1; ?>
+                            </tr>
+                            @endforeach
+                            @if ($count < 10) @for ($i=$count; $i < 10; $i++)
+                            <tr>
                                 <td>　</td>
                                 <td>　</td>
                                 <td>　</td>
                                 <td>　</td>
                                 <td>　</td>
-                                </tr>
-                                @endfor
+                            </tr>
+                            @endfor
+                            @endif
                         </tbody>
                     </table>
                 </div>

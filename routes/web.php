@@ -121,6 +121,13 @@ route::prefix('/masta')->controller(MastaController::class)->group(function()
     route::get('/upload','upload')->name('masta.upload');
     //長期情報アップロード
     route::post('/longinfo_upload','longinfo_upload')->name('masta.longinfo_upload');
+    //出荷明細アップロード
+    route::post('/shipping_upload','shipping_upload')->name('masta.shipping_upload');
+    //出荷明細、情報確認画面
+    route::get('/clearing_application','clearing_application')->name('masta.clearing_application');
+    //出荷データ反映
+    route::get('/shipment_application','shipment_application')->name('masta.shipment_application');
+    
 });
 
 //履歴関連

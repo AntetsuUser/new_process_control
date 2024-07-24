@@ -18,7 +18,10 @@ use App\Http\Requests\Masta\NumberRequest;
 use App\Http\Requests\Masta\WorkerEditRequest;
 use App\Http\Requests\Masta\StoreRequest;
 use App\Http\Requests\Masta\EquipmentRequest;
+
+//アップロードのrequest
 use App\Http\Requests\Masta\InfoUploadRequest;
+use App\Http\Requests\Masta\ShippingUploadRequest;
 
 //Excelのデータを操作するときに使用
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -513,20 +516,100 @@ class MastaController extends Controller
     // アップロード画面
     public function upload()
     {
+        $tab = "all";
+        //長期情報アップロードのログを取得
         $longinfo_log = $this->_uploadService->get_uplog();
+        //出荷明細のログを取得
+        $shipment_log = $this->_uploadService->get_uplog_shipment();
         
-        return view('masta.upload',compact('longinfo_log'));
+    
+        // `with` メソッドを使って追加のデータをビューに渡す
+        return view('masta.upload', compact('longinfo_log','shipment_log'));
     }
     //長期情報アップロード
     public function longinfo_upload(InfoUploadRequest $request)
     {
+        $tab = "all";
         $uploadfile = $request->file->path();
         $filename = $request->file('file');
+        
         //Excelファイルのデータをデータベースに登録する
         $this->_uploadService->create_table($filename,$uploadfile);
+        $category = "長期情報";
         //アップロードされたファイルを履歴DBに入れる
-        $this->_uploadService->upload_log($filename);
+        $this->_uploadService->upload_log($filename,$category);
 
-        return redirect()->route('masta.upload');
+        return redirect()->route('masta.upload')->with([
+            'tab' => $tab,
+            'message_all' => 'アップロードが完了しました。',
+            'message_type' => 'success' // メッセージの種類を指定（成功、エラーなど）
+        ]);
+    }
+    //出荷明細アップロード
+    public function shipping_upload(ShippingUploadRequest $request)
+    {
+        $tab = "shipping";
+        $category = "出荷明細";
+        //file情報
+        $uploadfile = $request->shipment_file->path();
+        $filename = $request->file('shipment_file');
+        //開始日
+        $start_date = $request->input('delivery_day');
+        //終了日
+        $end_date = $request->input('delivery_day_end');
+
+        //アップロードされたファイルを履歴DBに入れる
+        $this->_uploadService->shipping_upload_log($filename,$category,$start_date,$end_date);
+        //Excelファイルのデータをデータベースに登録する
+        $this->_uploadService->shipping_data_upload($filename,$uploadfile,$start_date,$end_date);
+
+        return redirect()->route('masta.upload')->with([
+            'tab' => $tab,
+            'message_shipment' => 'アップロードが完了しました。出荷確認ボタンを押して反映してください',
+            'message_type' => 'success' // メッセージの種類を指定（成功、エラーなど）
+        ]);
+    }
+    //出荷情報確認画面
+    public function clearing_application()
+    {
+        //出荷情報のDBから値を取得してくる
+        $shipping_data = $this->_uploadService->get_shipping_data();
+        // dd($shipping_data);
+        return view('masta.clearing_application',compact('shipping_data'));
+    }
+    //出荷情報を在庫に反映させる
+    public function shipment_application()
+    {
+        $tab = "shipping";
+        //出荷情報のDBから値を取得してくる
+        $shipping_data = $this->_uploadService->get_shipping_data();
+        $application_flag = true;
+        foreach ($shipping_data as $data) 
+        {
+            $id = $data["id"];
+            $item_code = $data["item_code"];
+            $ordering_quantity = $data["ordering_quantity"];
+            $return = $this->_uploadService->shipment_info_application($id,$item_code,$ordering_quantity);
+            dump($data["item_code"]);
+            dump($data["ordering_quantity"]);
+            if(!$return)
+            {
+                $application_flag = false;
+            }
+        }
+        if($application_flag)
+        {
+            $message  = '出荷情報が反映されました。';
+            $message_type = 'success';
+        }
+        else {
+            $message  = '出荷情報が反映出来なかった項目があります確認してください。';
+            $message_type = 'warning';
+        }
+        return redirect()->route('masta.upload')->with([
+            'tab' => $tab,
+            'message_shipment' => $message,
+            'message_type' => $message_type  // メッセージの種類を指定（成功、エラーなど）
+        ]);
     }
 }

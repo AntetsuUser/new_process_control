@@ -21,6 +21,7 @@ use App\Models\Processing_history;
 
 use App\Models\Temp_long_term_date;
 
+use App\Models\ShippingInfo;
 
 
 class UploadRepository
@@ -29,7 +30,13 @@ class UploadRepository
     public function get_uplog()
     {
         //最新のファイル情報から取得する
-        return Processing_history::where('category', '長期情報') ->orderBy('id', 'desc')->get();
+        return Processing_history::where('category', '長期情報') ->orderBy('id', 'desc')->get()->toArray();
+    }
+    //アップロード表示の時にcategoryが長期情報のやつだけ取得する
+    public function get_uplog_shipment()
+    {
+        //最新のファイル情報から取得する
+        return Processing_history::where('category', '出荷明細') ->orderBy('id', 'desc')->get()->toArray();
     }
 
     //親品番から子品番の情報を取得する
@@ -66,7 +73,19 @@ class UploadRepository
         'category' => $category,
         'detail' => $detail,
         'upload_day' => $upload_day,
-        // You may add more fields here if needed
+        ]);
+        
+    }
+     //アップロードの履歴を残す
+    public function shipping_upload_log($filename,$category,$detail,$upload_day,$start_date,$end_date)
+    {
+        Processing_history::create([
+        'file_name' => $filename,
+        'category' => $category,
+        'detail' => $detail,
+        'upload_day' => $upload_day,
+        'start_date' => $start_date,
+        'end_date' => $end_date,
         ]);
         
     }
@@ -213,7 +232,70 @@ class UploadRepository
             }
         }
     }
+
     public function temp_day_delete(){
         Temp_long_term_date::truncate();
     }   
+
+    //在庫に登録してある品番を取得する
+    public function item_code_confirmation()
+    {
+        return Stock::select('processing_item')->get()->toArray();
+    }
+
+    //処理対象をDBに保存する
+    public function insert_shipment_data($data)
+    {
+        DB::beginTransaction();
+        try {
+            ShippingInfo::create($data);
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to insert shipment data: ' . $e->getMessage());
+        }
+    }
+    //処理対象の出荷情報を取得する
+    public function get_shipping_data()
+    {
+        return ShippingInfo::all()->toArray();
+    }
+
+    // 処理対象の出荷情報を在庫に反映させる
+    public function shipment_info_application($item_code, $ordering_quantity)
+    {
+        if (strpos($item_code, "704") !== false) {
+            DB::beginTransaction();
+            try {
+                // 指定された item_code に対応する process6_stock の値を取得
+                $stock = Stock::where('processing_item', $item_code)->select('process6_stock')->first();
+                
+                if ($stock) {
+                    $new_quantity = $stock->process6_stock - $ordering_quantity;
+
+                    // process6_stock の値を更新
+                    Stock::where('processing_item', $item_code)->update(['process6_stock' => $new_quantity]);
+                }
+
+                DB::commit();
+                return true;
+            } catch (\Throwable $th) {
+                DB::rollBack();
+                return false;
+                // エラーハンドリング（例: ログ出力や例外を再スローするなど）
+                throw $th;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+    //データの削除
+    public function shipment_info_delete($id)
+    {
+        ShippingInfo::find($id)->delete();
+    }
+
+
 }

@@ -24,7 +24,20 @@ class UploadService
 
     //アップロードの履歴を全部取ってくる
     public function get_uplog(){
-        return $this->_uploadRepository->get_uplog();
+
+        $uplogShipment = $this->_uploadRepository->get_uplog();
+        if (count($uplogShipment) > 10) {
+            $uplogShipment = array_slice($uplogShipment, 0, 10);
+        }
+        return $uplogShipment;
+    }
+    public function get_uplog_shipment(){
+
+        $uplogShipment = $this->_uploadRepository->get_uplog_shipment();
+        if (count($uplogShipment) > 10) {
+            $uplogShipment = array_slice($uplogShipment, 0, 10);
+        }
+        return $uplogShipment;
     }
 
     //長期情報Excelファイルからデータベースのテーブルを作成する
@@ -37,20 +50,6 @@ class UploadService
         date_default_timezone_set('Asia/Tokyo'); // タイムゾーンを日本時間に設定
         $now = date("Y-m-d H:i:s"); // 現在の日付と時刻を取得（YYYY-MM-DD HH:MM:SS形式）
 
-        // ファイル名から日付を抽出
-        // preg_match('/(\d{4})-(\d{1,2})-(\d{1,2})/', $originalFilename, $matches);
-        // if (count($matches) === 4) {
-        //     $year = $matches[1];
-        //     $month = str_pad($matches[2], 2, '0', STR_PAD_LEFT);
-        //     $day = $matches[3];
-
-        //     $base_date = "{$year}-{$month}-{$day}"; // 日付の文字列を生成
-        // } else {
-        //     // 日付が見つからなかった場合は、エラー処理などを行う
-        //     // 例えば、デフォルトの日付を設定したり、ユーザーに通知したりする
-        //     // ここではとりあえず現在日時をデフォルトとして設定する例を示します
-        //     $base_date = date('Y-m-d');
-        // }
         $reader = new XlsxReader();
         $spreadsheet = $reader->load($uploadfile);
         //シート名を指定する
@@ -60,7 +59,6 @@ class UploadService
         //シートの最終列まで取得
         $max_col  = $sheet->getHighestColumn();
 
-        // 値を格納する配列
         $column = 'C';
         //取得したデータが入る
         $data = [];
@@ -251,15 +249,140 @@ class UploadService
 
     }
     //長期アップロードの履歴をDBに入れる
-    public function upload_log($filename)
+    public function upload_log($filename,$category)
     {
         //アップロードされたファイル
         $originalFilename = $filename->getClientOriginalName();
         date_default_timezone_set('Asia/Tokyo'); // タイムゾーンを日本時間に設定
         $now = date("Y-m-d H:i:s"); // 現在の日付と時刻を取得（YYYY-MM-DD HH:MM:SS形式）
-        $category = "長期情報";
         $detail = "アップロード";
         $this->_uploadRepository->upload_log($originalFilename,$category,$detail,$now);
 
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // 出荷明細
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    //出荷明細アップロードの情報をDBに入れる
+    public function shipping_upload_log($filename,$category,$start_date,$end_date)
+    {
+        $originalFilename = $filename->getClientOriginalName();
+        date_default_timezone_set('Asia/Tokyo'); // タイムゾーンを日本時間に設定
+        $now = date("Y-m-d H:i:s"); // 現在の日付と時刻を取得（YYYY-MM-DD HH:MM:SS形式）
+        $detail = "アップロード";
+        $this->_uploadRepository->shipping_upload_log($originalFilename,$category,$detail,$now,$start_date,$end_date);
+    }
+
+    
+    //出荷明細のExcelファイルの値を抜き出す
+    public function shipping_data_upload($filename,$uploadfile,$start_date,$end_date)
+    {
+        $reader = new XlsxReader();
+        $spreadsheet = $reader->load($uploadfile);
+        // 最初のシートを取得
+        //変更予定
+        $firstSheet = $spreadsheet->getSheet(0);
+        //シートの最終行を取得
+        $max_row = $firstSheet -> getHighestRow();
+        //シートの最終列まで取得
+        $max_col  = $firstSheet->getHighestColumn();
+        //開始と終了を数値化する
+        $start = $this->dateToExcelSerial($start_date);
+        $end = $this->dateToExcelSerial($end_date);
+
+        //在庫DBから品番を取得する
+        $items =  $this->_uploadRepository->item_code_confirmation();
+        // array_columnで特定のカラムの値を抽出
+        $processingItems = array_column($items, "processing_item");
+
+        //シートの処理
+        for ($row = 1; $row <= $max_row; $row++) {
+            //要求納期
+            $delivery_date = $firstSheet->getCell('E' . $row)->getValue();
+            if (is_null($delivery_date) || !is_numeric($delivery_date)) {
+                    continue; // 日付がnullまたは数値でない場合はスキップ
+            }
+            //開始数値と終了数値の間に$delivery_dateがあるとき
+            if($start <= $delivery_date && $end >= $delivery_date)
+            {
+                //品目コード、品目名称、要求納期、数量、備考
+
+                /** 要求納期 **/
+                //日付け数値から文字列に変換
+                $dateValue = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($delivery_date);
+                $formattedDate = $dateValue->format('Y-m-d'); // 希望の日付フォーマットに変換 
+                
+                /** /品目コード **/
+                $code = $firstSheet->getCell('B' . $row)->getValue();
+                // 数字が最初に出現する位置を取得
+                $number_position = strcspn($code, '0123456789');
+                // 文字の除去
+                $item_code = substr($code, $number_position);
+
+                /** /品目名称 **/
+                $item_name = $firstSheet->getCell('C' . $row)->getValue();
+                /** /数量 **/
+                $ordering_quantity = $firstSheet->getCell('G' . $row)->getValue();
+                /** /備考 **/
+                $note = $firstSheet->getCell('L' . $row)->getValue();
+
+                // in_arrayで値が存在するかを確認
+                if (in_array($item_code, $processingItems)) {
+                    $shipment_data[] =  ['item_code' => $item_code, 'item_name' => $item_name,'delivery_date' => $formattedDate, 
+                                'ordering_quantity' => $ordering_quantity, 'note' => $note];
+                } 
+            }
+        }
+        if (!empty($shipment_data)) 
+        {
+            foreach ($shipment_data as $data) 
+            {
+                $this->_uploadRepository->insert_shipment_data($data);
+            }
+        }
+
+    }
+
+    //処理対象の出荷情報を取得する
+    public function get_shipping_data()
+    {
+        return $this->_uploadRepository->get_shipping_data();
+    }
+
+    // 処理対象の出荷情報を在庫に反映させる
+    public function shipment_info_application($id,$item_code,$ordering_quantity)
+    {
+
+        $return = $this->_uploadRepository->shipment_info_application($item_code,$ordering_quantity);
+        if($return)
+        {       
+            //数量変更出来たら削除
+            $this->_uploadRepository->shipment_info_delete($id);
+            return true;
+        }
+        else
+        {   
+            return false;
+        }
+
+    }
+
+    //日付文字列を数値に変換する関数
+    function dateToExcelSerial($date) 
+    {
+        $start = new \DateTime("1899-12-30"); // Excelの日付シリアル値の開始日
+        $target = new \DateTime($date);
+        // 日数の差を計算
+        $interval = $start->diff($target);
+        return $interval->days;
+    }
+    // 値が存在するか確認する関数
+    function isValueInArray($array, $value, $key) {
+        foreach ($array as $item) {
+            if (isset($item[$key]) && $item[$key] === $value) {
+                return true;
+            }
+        }
+        return false;
     }
 }
