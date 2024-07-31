@@ -14,7 +14,7 @@ class ProcessedHistory extends Model
 
     // DBとの紐付けを明示的に
     protected $table = 'processed_data';
-
+    public $timestamps = false; // タイムスタンプの自動管理を無効にする
     // createを指定
     protected $fillable = [
         // DBに書き込まれるカラムを指定

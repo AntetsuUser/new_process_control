@@ -57,7 +57,12 @@
                         <input type="hidden" name="create_day" value="{{ $direction_date["capture_date"] }}">
                         <input type="hidden" name="delivery_date" value="{{ $direction_date["delivery_date"] }}">
                         <input type="hidden" name="process" value="{{ $direction_date["process"] }}">
-                        <input type="hidden" name="process_number" value="">
+                        <input type="hidden" name="item_name" value="{{ $direction_date["item_name"] }}">
+                        <input type="hidden" name="child_part_number1" value="{{ $direction_date["child_part_number1"] }}">
+                        <input type="hidden" name="child_part_number2" value="{{ $direction_date["child_part_number2"] }}">
+                        <input type="hidden" name="workcenter" value="{{ $direction_date["workcenter"] }}">
+                        <input type="hidden" name="processing_quantity" value="{{ $direction_date["processing_quantity"] }}">
+                        <input type="hidden" name="processing_item" value="{{ $direction_date["processing_item"] }}">
                         <table class="main_tbl" id="main_tbl">
                             
                             <tr>

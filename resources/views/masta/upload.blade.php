@@ -36,12 +36,12 @@
                 <div class="tab_content_description">
                     <form id="form_upload" action="{{ route('masta.longinfo_upload') }}" method="POST" enctype="multipart/form-data">
                         @csrf
+                        @if (session('message_all'))
+                            <div class="alert alert-{{ session('message_type') }}">
+                                {{ session('message_all') }}
+                            </div>
+                        @endif
                         <div class="contents_margin contents">
-                            @if (session('message_all'))
-                                <div class="alert alert-{{ session('message_type') }}">
-                                    {{ session('message_all') }}
-                                </div>
-                            @endif
                             <div class="row form_range">
                                 <div class="col-md-10">
                                     <input type="hidden" name="selection_elements" id="selection_elements" value="1">

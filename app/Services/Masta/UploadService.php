@@ -73,6 +73,7 @@ class UploadService
         $base_date =  $base_date->format('Y-m-d'); // 変換された日付を表示
         //8行目から最終行までループ　2個ずつ
         $longinfos_day = [];
+        $json = [];
         for ($row = 8; $row <= $max_row; $row += 2) 
         {
             // C列の品番を取得
@@ -88,8 +89,42 @@ class UploadService
             //マスタに登録されていなかったら
             if ($mastadata == false) 
             {
+                //登録されていなかったらjsonに記入する
                 array_push($unregistered,$item_name);
-                continue;
+                $json[$item_name] = [];
+                foreach ($columnIterator as $column) 
+                {
+                    // 個数を入力
+                    $quantity = $sheet->getCell($column->getColumnIndex() . $row + 1)->getValue();
+                    // 日付を入力
+                    $day = $sheet->getCell($column->getColumnIndex() . 5)->getValue();
+                    $weekday = $sheet->getCell($column->getColumnIndex() . 7)->getValue();
+
+                    $dateValue = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($weekday);
+                    $formattedDate = $dateValue->format('Y-m-d'); // 希望の日付フォーマットに変換 
+                    if($day == "")
+                    {
+                        continue;
+                    } else if (is_numeric($day) && (int)$day < 1000) {
+                        $day = $formattedDate;
+                        $daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+                        $dayOfWeek = $daysOfWeek[(int)$dateValue->format('w')];
+                    } else if (is_numeric($day) && (int)$day >= 1000) {
+                        $dateValue = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((int)$day);
+                        $formattedday = $dateValue->format('Y-m-d'); // 希望の日付フォーマットに変換 
+                        $day = $formattedday;
+                        // 曜日の短縮形を取得する
+                        $dayOfWeek = $formattedDate;
+                    }
+
+                    if($formattedDate == "1970-01-01")
+                    {
+                        $formattedDate =NULL;
+                        $dayOfWeek  =NULL;
+                    }
+                    // dump($day,$formattedDate,$quantity);
+                    $json[$item_name][] =["day"=>$day,"weekday"=>$dayOfWeek,"target"=>$quantity];
+                }
             }
             else {
                 if ($item_name) 
@@ -144,64 +179,41 @@ class UploadService
                     $target =[];
                     $addition = [];
                     $longinfos_day = [];
+                    $long_DB = 0;
                     foreach ($columnIterator as $column) 
                     {
+                        $long_DB = NULL;
                         // 個数を入力
                         $value = $sheet->getCell($column->getColumnIndex() . $row + 1)->getValue();
                         // 日付を入力
                         $day = $sheet->getCell($column->getColumnIndex() . 5)->getValue();
                         $weekday = $sheet->getCell($column->getColumnIndex() . 7)->getValue();
-                        $long_DB = 0;
+                        $dateValue = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($weekday);
+                        $formattedDate = $dateValue->format('Y-m-d'); // 希望の日付フォーマットに変換 
                         //最後の行は入れない
                         if($day == "")
                         {
                             continue;
-                        }
-                        //長期の最期の週の所
-                        if (is_numeric($day) && $day > 59) {
-                            $unixDate = ($day - 25569) * 86400; // Excelシリアル値をUnixタイムスタンプに変換
-                            $day = gmdate('Y-m-d', $unixDate); // "yyyy-mm-dd"形式にフォーマット (UTCタイムゾーンを使用)
-                            $unixdate = ($weekday - 25569) * 86400;
-                            $weekday = gmdate('Y-m-d', $unixdate); // 
-                        //長期の表示されてる日付
-                        } elseif (is_numeric($day) && $day > 0 && $day <= 31) 
-                        {
-                            //取得した日付がベースの日付より大きかったら
-                            if ($day < substr($base_date, 8, 2)) {
-                                $new_year = intval(substr($base_date, 0, 4));
-                                $new_month = intval(substr($base_date, 5, 2)) + 1;
-                                // 月が12を超えた場合は年を加算して月をリセット
-                                if ($new_month > 12) {
-                                    $new_year++;
-                                    $new_month = 1;
-                                }
-                                $day = sprintf("%04d-%02d-%02d", $new_year, $new_month, $day);
-                                $long_DB = $day;
-                            } else {
-                                
-                                $day = substr($base_date, 0, 8) . $day;
-                                $long_DB = $day;
-                            }
-                            $unixDate = strtotime($day); // Unixタイムスタンプに変換
-                            if($weekday == NULL)
-                            {
-                                $weekday = "null";
-                            }
-                            else {
-                                
-                                $weekdaydate = date('w', $unixDate); // 曜日を数値で取得 (0: 日曜, 1: 月曜, ... 6: 土曜)
-                                // 日本語の曜日を対応する配列を作成
-                                $weekdays_arr = ['日', '月', '火', '水', '木', '金', '土'];
-                                // 曜日を日本語に変換
-                                $weekday = $weekdays_arr[$weekdaydate];
-                            }
+                        }else if (is_numeric($day) && (int)$day < 1000) {
+                            $day = $formattedDate;
+                            $daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+                            $dayOfWeek = $daysOfWeek[(int)$dateValue->format('w')];
+                            $long_DB  = $day;
+                        } else if (is_numeric($day) && (int)$day >= 1000) {
+                            $dateValue = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((int)$day);
+                            $formattedday = $dateValue->format('Y-m-d'); // 希望の日付フォーマットに変換 
+                            $day = $formattedday;
+                            // 曜日の短縮形を取得する
+                            $dayOfWeek = $formattedDate;
                         }
                         $days[] = $day;
-                        $weekdays[] =  $weekday;
+                        $weekdays[] =  $dayOfWeek;
                         $target[] = $value !== null ? $value : 0;
                         $addition[] = 0;
                         $child_material_stock[] = 0;
-                        $longinfos_day[] =  $long_DB;
+                       if (!is_null($long_DB)) {
+                            $longinfos_day[] = $long_DB;
+                        }
                     }
                     //配列に日付、曜日、数量、追加数量、材料在庫、材料在庫を入れる
                     $col_value["day"] = $days;
@@ -239,6 +251,12 @@ class UploadService
 
             }
         }
+        // 配列をJSON形式にエンコード
+        $jsonData = json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        // JSONデータをファイルに書き込む
+        $file = '/home/pi/Desktop/process_control/public/new_data.json';
+        file_put_contents($file, $jsonData);
         //0のところを削除する
         $filtered_dates = array_filter($longinfos_day, function($value) {
             return $value !== 0;
@@ -273,7 +291,7 @@ class UploadService
         $this->_uploadRepository->shipping_upload_log($originalFilename,$category,$detail,$now,$start_date,$end_date);
     }
 
-    
+
     //出荷明細のExcelファイルの値を抜き出す
     public function shipping_data_upload($filename,$uploadfile,$start_date,$end_date)
     {

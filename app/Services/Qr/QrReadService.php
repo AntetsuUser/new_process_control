@@ -3,6 +3,8 @@
 namespace App\Services\Qr;
     
 use App\Repositories\Qr\QrReadRepository;
+use Carbon\Carbon;
+
     
 class QrReadService 
 {
@@ -67,6 +69,32 @@ class QrReadService
         }
         // 指示書の作業フラグをfalseにする
         $this->_qrreadRepository->working_end($characteristic_id);
+
+    }
+    public function input_history_create($directions_data)
+    {
+        //入力履歴に値を入れるために配列をきれいにする
+        $directions_data["characteristic_id"] = $directions_data["unique_id"];
+        unset($directions_data['unique_id']);
+        // processing_quantity の null チェックと変換
+        $directions_data['processing_plan_quantity'] = isset($directions_data['processing_quantity']) ? $directions_data['processing_quantity'] : 0;
+        unset($directions_data['processing_quantity']);
+
+        // good_product の null チェックと変換
+        $directions_data['good_item'] = isset($directions_data['good_product']) ? $directions_data['good_product'] : 0;
+        unset($directions_data['good_product']);
+
+        // poor_processing の null チェックと変換
+        $directions_data['processing_defect_item'] = isset($directions_data['poor_processing']) ? $directions_data['poor_processing'] : 0;
+        unset($directions_data['poor_processing']);
+
+        // poor_material の null チェックと変換
+        $directions_data['material_defect_item'] = isset($directions_data['poor_material']) ? $directions_data['poor_material'] : 0;
+        unset($directions_data['poor_material']);
+        $directions_data["capture_date"] = $directions_data["create_day"];
+        unset($directions_data['create_day']);
+        $directions_data['input_datetime'] = Carbon::now('Asia/Tokyo');
+        $this->_qrreadRepository->input_history_create($directions_data);
     }
 
 }

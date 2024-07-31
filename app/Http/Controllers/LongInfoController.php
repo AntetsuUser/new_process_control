@@ -60,14 +60,12 @@ class LongInfoController extends Controller
         $stock_arr = $send_arr["stock_arr"];
         //表示する配列をもらう
         // 日付データ取得
-        $date_arr = $this->_longinfoService->date_get();
-
-        // 数量情報取得
-        $quantity_arr = $this->_longinfoService->quantity_get($info_process_arr);
-        // dd($send_arr);
-        //選択可能な工程を取得する
+        $date_arr = $this->_longinfoService->date_get();    
+                //選択可能な工程を取得する
         $selectable = $this->_longinfoService->selectable($line_numbers);
         $selectable_json = json_encode($selectable, JSON_PRETTY_PRINT);
+        // 数量情報取得
+        $quantity_arr = $this->_longinfoService->quantity_get($info_process_arr);
 
         //工場id、製造課id、作業者idを変数に格納
         $factory = $request->factory;

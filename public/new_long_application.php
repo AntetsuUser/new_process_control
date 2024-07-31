@@ -1,4 +1,5 @@
 <?php
+ini_set('display_errors', "On");
 // temp_longinfosのテーブルをlonginfosにテーブルをコピー
 // データベース接続情報
 $host = 'localhost';
@@ -9,65 +10,135 @@ $password = 'andadmin';
 
 $process_DB = 'laravel';
 
+function databaseExists($host, $username, $password, $dbname) {
+    try {
+        $pdo = new PDO("mysql:host=$host", $username, $password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        $query = $pdo->query("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '$dbname'");
+        return $query->rowCount() > 0;
+    } catch (PDOException $e) {
+        echo "データベース接続エラー: " . $e->getMessage();
+        return false;
+    }
+}
+// データベースの存在確認と接続
+if (!databaseExists($host, $username, $password, $dbname_source)) {
+    echo "データベース '$dbname_source' は存在しません。";
+    exit; // スクリプトを終了
+}
+
+if (!databaseExists($host, $username, $password, $dbname_dest)) {
+    echo "データベース '$dbname_dest' は存在しません。";
+    exit; // スクリプトを終了
+}
+
+if (!databaseExists($host, $username, $password, $process_DB)) {
+    echo "データベース '$process_DB' は存在しません。";
+    exit; // スクリプトを終了
+}
+
 // temp_longinfoで在庫数量の引き当て
 // 在庫数量取得
 // PDOで元データベースに接続
+$pdo_source = new PDO("mysql:host=$host;dbname=$dbname_source", $username, $password);
+$pdo_source->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+//stockの工程の在庫を取得する
+// stockテーブルのデータをすべて取得
 $pdo_stock = new PDO("mysql:host=$host;dbname=$process_DB", $username, $password);
 $pdo_stock->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-// stockテーブルのデータをすべて取得
-$query = $pdo_stock->query("SELECT * FROM stock");
+$query = $pdo_stock->query("SELECT processing_item, process1_stock, process2_stock, process3_stock, process4_stock, process5_stock, process6_stock, process7_stock, process8_stock, process9_stock, process10_stock FROM stock");
 $stock_arr = $query->fetchAll(PDO::FETCH_ASSOC);
-
-// stock配列をループ
-foreach ($stock_arr as $stock_key => $stock_value) {
-    // 素材在庫と処理日時のキーを削除
-    unset($stock_value["id"]);
-    unset($stock_value["material_stock_1"]);
-    unset($stock_value["material_stock_2"]);
-    unset($stock_value["created_at"]);
-    unset($stock_value["updated_at"]);
-    // 品番を変数に格納してキーの削除
-    $item_name = $stock_value["processing_item"];
-    unset($stock_value["processing_item"]);
-
-    // PDOでtemp_longinfoに接続
-    $pdo_source = new PDO("mysql:host=$host;dbname=$dbname_source", $username, $password);
-    $pdo_source->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    // 品番テーブルのデータをすべて取得
-    $query = $pdo_source->query("SELECT * FROM ".$item_name);
-    $item_arr = $query->fetchAll(PDO::FETCH_ASSOC);
-
-    // 工程ごとの在庫数量で引き当て処理作成
-    foreach ($stock_value as $key => $quantity) {
-        // 除去する文字列
-        $removeString = "_stock";
-        $serch_key = str_replace($removeString, "", $key);
-        $clearing_quantity = $quantity;
-        foreach ($item_arr as $item_key => $item_value) {
-            if (isset($item_value[$serch_key])) {
-                if ($item_value[$serch_key] == 0) {
-                    continue;
-                } elseif($clearing_quantity < $item_value[$serch_key]) {
-                    $item_arr[$item_key][$serch_key] = $item_value[$serch_key] - $clearing_quantity;
-                    $clearing_quantity = 0;
-                }else{
-                    $clearing_quantity = $clearing_quantity - $item_value[$serch_key];
-                    $item_arr[$item_key][$serch_key] = 0;
-                }
-                if ($clearing_quantity == 0) {
-                    break;
-                }
-            } else {
-                break;
-            }
+$item_process_stock =[];
+foreach ($stock_arr as $stock_key =>  $stock_data) {
+    foreach ($stock_data as $key => $value) 
+    {
+       if (preg_match('/_stock$/', $key)) {
+            // `_stock`を削除した新しいキーを作成
+            $new_key = preg_replace('/_stock$/', '', $key);
+            $item_process_stock[$stock_data["processing_item"]][$new_key] = $value;
         }
     }
-
-    // echo "<pre>";
-    // var_dump($item_arr);
-    // echo "</pre>";
 }
+//在庫から進捗を更新
+foreach ($item_process_stock as $item_name => $process) {
+    foreach ($process as $key => $stock_value) 
+    {
+        try {
+            $pdo_source = new PDO("mysql:host=$host;dbname=$dbname_source", $username, $password);
+            $pdo_source->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            // カラムの存在を確認
+            $query = $pdo_source->query("SHOW COLUMNS FROM $item_name LIKE '$key'");
+            $column_exists = $query->rowCount() > 0;
+
+            if ($column_exists) {
+                // カラムが存在する場合の処理
+                $query = $pdo_source->query("SELECT $key FROM $item_name");
+                $item_arr = $query->fetchAll(PDO::FETCH_ASSOC);
+
+                // データが取得できた場合のみ処理を実行
+                if (!empty($item_arr)) {
+                    if($key == "process6")
+                    {
+                        $remaining = $process["process6"];
+                    }
+                    else if($key == "process5"){
+                        $remaining = $process["process6"] + $process["process5"];
+                    }else if($key == "process4")
+                    {
+                        $remaining = $process["process6"] + $process["process5"] + $process["process4"];
+                    }else if($key == "process3")
+                    {
+                        $remaining = $process["process6"] + $process["process5"] + $process["process4"] + $process["process3"];
+                    }else if($key == "process2")
+                    {
+                        $remaining = $process["process6"] + $process["process5"] + $process["process2"];
+                    }else if($key == "process1")
+                    {
+                        $remaining = $process["process6"] + $process["process5"] + $process["process2"] + $process["process1"];
+                    }
+                    foreach ($item_arr as $item => $val) {
+
+                        if($remaining <= 0)
+                        {
+                            
+                            break;
+                        }
+                        else {
+                            if($remaining > $item_arr[$item][$key])
+                            {
+
+                                $remaining = $remaining - $item_arr[$item][$key];
+                                $item_arr[$item][$key] = 0;
+                            }
+                            elseif($remaining <= $item_arr[$item][$key])
+                            {   
+                                $item_arr[$item][$key] = $item_arr[$item][$key] - $remaining;
+                                $remaining = 0;
+                                break;
+                            }
+                        }
+                    }
+                    // DBの更新処理
+                    foreach ($item_arr as $item => $val) {
+
+                        $DB_id = $item +1;
+                        // SQLの準備
+                        $stmt = $pdo_source->prepare("UPDATE $item_name SET $key = :value WHERE id = :id");
+                        // データベースの更新
+                        $stmt->execute([':value' => $val[$key], ':id' => $DB_id]);
+                    }
+                }
+            }
+        } catch (PDOException $e) {
+            echo "データベースエラー: " . $e->getMessage();
+        }
+    }
+}
+
 
 
 // temp_longinfoからlonginfosにデータの移動

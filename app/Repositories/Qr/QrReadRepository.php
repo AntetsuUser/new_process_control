@@ -6,6 +6,8 @@ use App\Models\PrintHistory;
 
 use App\Models\Stock;
 
+use App\Models\ProcessedHistory;
+
 use Illuminate\Support\Facades\DB;
 
 // データベース作成に使う
@@ -27,7 +29,7 @@ class QrReadRepository
         DB::beginTransaction();
         try {
             PrintHistory::where('characteristic_id', $characteristic_id)
-                ->update(['input_complete_flag' => false]);
+                ->update(['input_complete_flag' => "false"]);
                 // 変更を反映させる
             DB::commit();
         } catch (\Exception $e) {
@@ -87,6 +89,10 @@ class QrReadRepository
                 throw $th;
             }
         }
+    }
+    public function input_history_create($directions_data)
+    {
+        ProcessedHistory::create($directions_data);
     }
 
 

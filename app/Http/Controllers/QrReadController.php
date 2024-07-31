@@ -36,6 +36,7 @@ class QrReadController extends Controller
     {  
         $data = $request->all();
         $this->_qrreadService->achievement_application($data);
+        $this->_qrreadService->input_history_create($data);
         return view('qr.input_succes');
     }
 }

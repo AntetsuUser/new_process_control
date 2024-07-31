@@ -124,11 +124,17 @@ class MastaController extends Controller
             //図面番号 ,加工品目,品目名称,材料品目,品目集約,工場id,製造課id,ラインNo,結合判定
             'print_number', 'name', 'item_name', 'resource_item', 'collect_name', 'factories_id', 'departments_id', 'line_number', 'join_flag',  
         ]);
+        $process_json =[];
+        $process_count=1;
         //品目名称がシャフトアッシーの時に子品番に $request->input('name')[]を
         foreach ($request->print_number as $index => $numbers_value) {
             // $numberを処理する（例：データベースに保存する、表示する、など）
             $numbers_arr = [];
             //データベースに登録する値を連想配列で入れる
+            if($index == 0)
+            {
+                $parent_number = $numbers_data['name'][$index];
+            }
             //図面番号
             $numbers_arr['print_number'] = $numbers_data['print_number'][$index];
             //加工品目
@@ -162,10 +168,15 @@ class MastaController extends Controller
             else {
                 $numbers_arr['id']= null;
             }
-            
             //データが存在する場合のみデータベースに登録
             if(!empty($numbers_arr['print_number']))
             {
+                if($index == 0)
+                {
+                    //stockテーブルに追加する
+                    $this->_numberService->stock_insert($numbers_arr['processing_item']);
+
+                }
                 $numbers_id = $this->_numberService->upsert($numbers_arr);
             }
             // ここで$numbers_arrをnumbers_DBに登録してデータを処理し、登録したIDを取得
@@ -174,11 +185,14 @@ class MastaController extends Controller
                 //工程を入れていく
                 $process_arr = [];
                 $processKey = "process_$i";
+                
+
                 if($request->has($processKey) )
                 {
                     if (!isset($request[$processKey][$index])) {
                         continue;
                     }
+                    $process_text = "process".$process_count;
                     //加工品目
                     $process_arr["processing_item"] = $numbers_data['name'][$index];
                     // 加工工程番号
@@ -198,11 +212,15 @@ class MastaController extends Controller
                     // ここで$numbers_arrをnumbers_DBに登録してデータを処理し、登録したIDを取得
 
                     $this->_numberService->process_upsert($process_arr);
+                    $process_json[$parent_number][] = $process_text;
+                    $process_count++;
                 }else{
                     continue;
                 }
             }
         }
+        //data_jsonとlonginfosに品番を追加
+        $this->_numberService->longinfos_create($process_json);
 
         return redirect()->route('masta.number');
     }

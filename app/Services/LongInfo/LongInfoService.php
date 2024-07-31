@@ -319,11 +319,11 @@ class LongInfoService
         return $date_arr;
     }
 
-    // 長期数量を取得
+    // ss
     public function quantity_get($item_arr)
     {
         // 数量を格納するための配列を宣言
-        $quantity_arr[] = array();
+        $quantity_arr = array();
         foreach ($item_arr as $key => $process) {
             // 品番テーブルからデータ取得
             $db_quantity = $this->_longinfoRepository->quantity_get($key);
@@ -334,10 +334,18 @@ class LongInfoService
 
                 $count = 0;
                 foreach ($process as $process_key => $process_data) {
-                    if (strpos($process_data,'NC/MC') !== false) {
-                        $count = $count + 2; 
+                    if (strpos($process_data,'102') !== false and strpos($process_data,'NC/MC') === false) {
+                        $count = 1; 
+                    }elseif (strpos($process_data,'102') !== false and strpos($process_data,'NC/MC') !== false) {
+                        $count = 2;
+                    }elseif (strpos($process_data,'103') !== false and strpos($process_data,'NC/MC') === false) {
+                        $count = 3;
+                    }elseif (strpos($process_data,'103') !== false and strpos($process_data,'NC/MC') !== false) {
+                        $count = 4;
+                    }elseif (strpos($process_data,'組立') !== false) {
+                        $count = 5;
                     }else{
-                        $count++;
+                        $count = 6;
                     }
                     $table_name = "process" . $count;
                     $quantity_arr[$key][$process_key+1][] = $quant_value->$table_name;
@@ -410,9 +418,21 @@ class LongInfoService
         //連想配列を作成する
         $print_arr = [];
         //characteristic_idを作成して配列に入れる
-        $digits = sprintf('%04d', $arr_count +1);
-        $characteristic_id =  date("ymdHis") . $digits;
+        $digits = sprintf('%02d', $arr_count +1);
+
+         // 現在のマイクロ秒を取得
+        $microtime = microtime(true);
+
+        // 秒とマイクロ秒を分ける
+        $seconds = floor($microtime);
+        $microseconds = ($microtime - $seconds) * 1000000;
+
+        // マイクロ秒を2桁に整形（コンマ秒に変換）
+        $micro = sprintf('%02d', (int)($microseconds / 10000)); // 10000で割ってコンマ秒に変換
+
+        $characteristic_id =  date("ymdHis"). $micro . $digits;
         $print_arr['characteristic_id'] = $characteristic_id;
+
 
         //親品番から子品番を取得してくる
         $item = $this->_longinfoRepository->child_number_get($data_arr[0],704);
@@ -475,8 +495,15 @@ class LongInfoService
         //////////////////////////////////////////////////////////////////////
         //長期数量から選択した数量分引く
         //////////////////////////////////////////////////////////////////////
+        //NC,MCが結合されていたらどっちも引かなけばならない
         $info_process = "process".$process_number;
         $this->_longinfoRepository->info_calculation($parent_name,$info_process,$delivery_date,$processing_quantity);
+        if (strpos($process, 'NC') !== false && strpos($process, 'MC') !== false) 
+        {
+            // $process に NC と MC の両方が含まれている場合の処理
+            $info_process = "process".$process_number-1;
+            $this->_longinfoRepository->info_calculation($parent_name,$info_process,$delivery_date,$processing_quantity);
+        }
 
 
         //////////////////////////////////////////////////////////////////////
@@ -490,7 +517,7 @@ class LongInfoService
                 // 工程番号から減らす工程在庫のカラム名を作成する
                 $reduce_stock_names = ["material_stock_1"]; 
                 // 工程番号から増やす工程在庫のカラム名を作成する 
-                $increase_stock_names = ["process" . $process_number . "_stock", "process" . ($process_number - 1) . "_stock"];
+                $increase_stock_names = ["process" . $process_number . "_stock"];
             } else {
                 // 工程番号から増やす工程在庫のカラム名を作成する
                 $increase_stock_names = ["process" . $process_number . "_stock"];
@@ -507,7 +534,7 @@ class LongInfoService
                 // 工程番号から減らす工程在庫のカラム名を作成する
                 $reduce_stock_names = ["material_stock_2"];  
                 // 工程番号から増やす工程在庫のカラム名を作成する
-                $increase_stock_names = ["process" . $process_number . "_stock", "process" . ($process_number - 1) . "_stock"];
+                $increase_stock_names = ["process" . $process_number . "_stock"];
             } else {
                 // 工程番号から増やす工程在庫のカラム名を作成する
                 $increase_stock_names = ["process" . $process_number . "_stock"];

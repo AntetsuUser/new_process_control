@@ -8,6 +8,15 @@ use App\Models\Number;
 
 use App\Models\Factory;
 
+use App\Models\Stock;
+
+
+// データベース作成に使う
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\Log; // これを追加
+
 use Illuminate\Support\Facades\DB;
 
 class NumberRepository
@@ -177,4 +186,65 @@ class NumberRepository
         $numbers['process'] =  Process::select('process')->where('process', '!=', '')->DISTINCT()->pluck('process')->all();
         return $numbers;
     }
+    public function stock_insert($stock_arr,)
+    {
+        $exists = Stock::where('processing_item', $stock_arr['processing_item'])->exists();
+        if (!$exists) {
+            Stock::create([
+                'processing_item' => $stock_arr['processing_item'],
+                'material_stock_1' => $stock_arr['material_stock_1'],
+                'material_stock_2' => $stock_arr['material_stock_2'],
+                'process1_stock' => $stock_arr['process1_stock'],
+                'process2_stock' => $stock_arr['process2_stock'],
+                'process3_stock' => $stock_arr['process3_stock'],
+                'process4_stock' => $stock_arr['process4_stock'],
+                'process5_stock' => $stock_arr['process5_stock'],
+                'process6_stock' => $stock_arr['process6_stock'],
+                'process7_stock' => $stock_arr['process7_stock'],
+                'process8_stock' => $stock_arr['process8_stock'],
+                'process9_stock' => $stock_arr['process9_stock'],
+                'process10_stock' => $stock_arr['process10_stock'],
+            ]);
+        }
+    }
+    //second_mysql
+
+
+    //create_longinfo_tableを作成
+   public function create_longinfo_table($name, $item_arr,$DBname)
+    {
+        if (!Schema::connection($DBname)->hasTable($name)) {
+            // トランザクションの開始
+            DB::beginTransaction();
+            try {
+                Schema::connection($DBname)->create($name, function (Blueprint $table) use ($item_arr) {
+                    $table->id();
+                    // 最初の要素からキーを取得してカラムを定義
+                    foreach (array_keys($item_arr[0]) as $value) {
+                        if ($value == "day" || $value == "weekday") {
+                            $table->string($value)->nullable()->comment($value);
+                        } else {
+                            $table->integer($value)->nullable()->comment($value);
+                        }
+                    }
+                });
+
+                // テーブルにデータを挿入
+                foreach ($item_arr as $item) {
+                    DB::connection($DBname)->table($name)->insert($item);
+                }
+
+                // コミット
+                DB::commit();
+            } catch (\Throwable $th) {
+                // 何らかのエラーが発生した場合、ロールバック
+                DB::rollback();
+                // 例外をキャッチしてエラー処理を行う
+                // 例外をログに記録したり、ユーザーにエラーメッセージを表示したりできる
+                throw $th;
+            }
+        }
+    }
+
+
 }   

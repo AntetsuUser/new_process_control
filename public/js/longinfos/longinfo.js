@@ -712,6 +712,24 @@ function stock_check(selection_elements, input_value) {
         } else {
             // 102 or 103のNC/MC
             if (second_column_value.includes('/')) {
+                // if (second_column_value.includes("102")) {
+                //     var stock_text = parent_tr.prev().prev().find('td:eq(2)').text();
+                //     let stock_quantity = text_conversion(stock_text);
+                //     if (stock_quantity < input_value) {
+                //         result = false; // 在庫が足りない場合は結果をfalseに設定
+                //         return false; // eachのループを終了
+                //     }
+                // } else if (second_column_value.includes("103")) {
+                //     var stock_text = parent_tr.prev().prev().find('td:eq(2)').text();
+                //     let stock_quantity = text_conversion(stock_text);
+                //         console.log(stock_quantity,input_value);
+                //     if (stock_quantity < input_value) {
+                //         result = false; // 在庫が足りない場合は結果をfalseに設定
+                //         return false; // eachのループを終了
+                //     }
+                // }
+            } else {
+                console.log("/含みません");
                 if (second_column_value.includes("102")) {
                     var stock_text = parent_tr.prev().prev().find('td:eq(2)').text();
                     let stock_quantity = text_conversion(stock_text);
@@ -722,13 +740,12 @@ function stock_check(selection_elements, input_value) {
                 } else if (second_column_value.includes("103")) {
                     var stock_text = parent_tr.prev().prev().find('td:eq(2)').text();
                     let stock_quantity = text_conversion(stock_text);
+                        console.log(stock_quantity,input_value);
                     if (stock_quantity < input_value) {
                         result = false; // 在庫が足りない場合は結果をfalseに設定
                         return false; // eachのループを終了
                     }
                 }
-            } else {
-                console.log("/含みません");
             }
         }
     });
