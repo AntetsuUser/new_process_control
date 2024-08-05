@@ -44,9 +44,7 @@ function in_work_cell() {
                     }
                 });
             }
-            console.log(element['parent_name']);
-            console.log(element['delivery_date']);
-            console.log(col);
+
 
             // 親アイテム名とプロセスの一致を確認してクラスを追加
             table_itemname_row.each(function (i) {
@@ -71,21 +69,18 @@ function in_work_cell() {
             }
 
             if (row !== undefined && col !== undefined) {
-                console.log(row,col);
-                console.log($("#info_table tbody tr").eq(row).find('td').eq(col));
+
                 $("#info_table tbody tr").eq(row).find('td').eq(col).addClass('in_work');
             }
             unmatched = false;
         } else {
             // 長期作成日が違った場合
-            // console.log("違うかも")
             unmatched = true;
             addToUnmatchedArr(unmatched_arr, element['parent_name'], element['process'], element['processing_quantity']);
         }
     });
 
     if (unmatched === true) {
-        console.log(unmatched_arr);
         Object.keys(unmatched_arr).forEach(parent_name => 
         {
             // 親アイテム名とプロセスの一致を確認してクラスを追加
@@ -113,9 +108,6 @@ function in_work_cell() {
                     }
                 }
                 let col = 3;
-                console.log("low" + row)
-                // $("#info_table tbody tr").eq(row).find('td').eq(col).addClass('in_work'); 
-                console.log(`Parent: ${parent_name}, Process: ${process_text}, Quantity: ${unmatched_arr[parent_name][process_text]}`);
                 //ここで色を塗る
                 let td_table = $("#info_table tbody tr").eq(item_row+1).find('td');
                 //色を塗るtdy要素
@@ -124,7 +116,6 @@ function in_work_cell() {
                 let remaining_quantity = Number(unmatched_arr[parent_name][process_text]);
                 for (let i = col; i < rows; i++) {
                     let quantity = td_table.eq(i).text();
-                    console.log(quantity);
                     if (quantity !== "") {
                         quantity = Number(quantity);
                         if (isNaN(quantity)) continue;
@@ -519,13 +510,11 @@ $('#print').on('click',function(){
             let item_code
             for (let index = tr_index; index > 0; index--) {
                 let element = table_row.eq(index-1).find('td').eq(0);
-                console.log(element.text());
                 // elementがjQueryオブジェクトであることを確認
                 if (element.length) {
                     // クラスをチェック
                     if (element.hasClass('info_item')) {
                         item_code = element.text();
-                        console.log();
                         break;
                     }
                 }
@@ -611,12 +600,10 @@ $('#print').on('click',function(){
             // 配列に格納
             //[品目コード、工程、納期、着手日、加工数、今まで何個加工したか、長期数量、設備番号、作業者id,工程番号]
             select_arr.push([item_code,process,delivery_date,formattedDate,processing_quantity,processing_all,long_term_all,lineNumbers,workersid,process_number]);
-            console.log(select_arr)
         } 
     });
     if(allHaveClass)
     {
-        console.log(select_arr);    // 動的にフォームを作成
         let form = $('<form>', {
             action: '/longinfo/print',
             method: 'post'
@@ -706,6 +693,7 @@ function stock_check(selection_elements, input_value) {
             }
         } else if (second_column_value == '組立') {
             result = checkStockAvailability(parent_tr, input_value);
+            console.log(result);
             if (!result) {
                 return false; // eachのループを終了
             }
@@ -777,23 +765,34 @@ function text_conversion(text)
 /////////////////////////////////////////////////////////////////
 function checkStockAvailability(parent_tr,input_value) 
 {
+    console.log(parent_tr);
+    var oneAboveTr = parent_tr.prev('tr');
+    var twoAboveTr = parent_tr.prev('tr').prev('tr');
+    var secondTdText = oneAboveTr.find('td').eq(2).text();
+    var secondTdTextTwoAbove = twoAboveTr.find('td').eq(2).text();
+
+    console.log(secondTdText,secondTdTextTwoAbove);
+    // 在庫数量を探す関数
     function findStockQuantity(prevRows, code) {
+        var codeStr = String(code);  // code を文字列に変換
+        // code と 'MC' を含む2番目の <td> を見つける
         var found_td = prevRows.find('td:eq(1)').filter(function() {
-            return $(this).text().includes(code) && $(this).text().includes('MC');
+            return $(this).text().includes(codeStr) && $(this).text().includes('MC');
         }).first();
-        
-        if (found_td) {
+
+        // 見つかった場合は、同じ <tr> 内の3番目の <td> のテキストを取得
+        if (found_td.length > 0) {
             var stock_text = found_td.closest('tr').find('td:eq(2)').text();
             return text_conversion(stock_text);
         }
+
+        // 見つからない場合は 0 を返す
         return 0;
     }
 
-    var prevRows = parent_tr.prevAll('tr');
-    var stock_quantity_102 = findStockQuantity(prevRows, '102');
-    var stock_quantity_103 = findStockQuantity(prevRows, '103');
-
-
+    var stock_quantity_102 = findStockQuantity(oneAboveTr, "103");
+    var stock_quantity_103 = findStockQuantity(twoAboveTr, "102");
+    console.log(stock_quantity_102, stock_quantity_103);
     if (stock_quantity_102 < input_value || stock_quantity_103 < input_value) {
         return false;
     }

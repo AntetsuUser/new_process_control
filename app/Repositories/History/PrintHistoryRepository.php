@@ -21,4 +21,7 @@ class PrintHistoryRepository
         // あれば作業者名を、無ければ未登録を返す
         return $worker ? $worker->name : '未登録';
     }
+    public function reprint($id) {
+         return PrintHistory::where('characteristic_id', $id)->get()->toArray();
+}
 }

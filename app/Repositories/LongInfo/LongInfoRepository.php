@@ -41,13 +41,13 @@ class LongInfoRepository
     public function line_get_process($line_numbers)
     {
         //配列で取得して返す
-        return Process::where('store', 'LIKE', "%{$line_numbers}%")->select('processing_item','process','process_number','processing_time','lot')
+        return Process::where('store','REGEXP', "(^|,)$line_numbers(,|$)")->select('processing_item','process','process_number','processing_time','lot')
                     ->get()
                     ->toArray();
     }   
     public function item_get_process($item)
     {
-        return Process::where('processing_item',$item)->select('process','process_number','process_number')->get()
+        return Process::where('processing_item',$item)->select('process','process_number')->get()
                     ->toArray();
     }
     //作業者の名前を取得する

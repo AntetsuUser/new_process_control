@@ -94,6 +94,7 @@ class LongInfoService
                 $process_arr =[];
                 if(!$data['child_flag'])
                 {
+
                     //子品番フラグがfalseなら
                     $child_part_number1 = $data['child_part_number1'];
                     $child_part_number2 = $data['child_part_number2'];
@@ -145,7 +146,6 @@ class LongInfoService
                         $item_arr[$parent_name][] = $final_process;
                         $day_arr[$parent_name] = $this->_longinfoRepository->get_day($parent_name,$process_count);
                     }
-
                 }
             }
         }

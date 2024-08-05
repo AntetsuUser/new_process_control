@@ -178,7 +178,7 @@
             <div>
                 <p class="contents_title">品目マスタ</p>
             </div>
-            <a href="{{ route('masta.number_insert') }}" class="btn btn-primary main_btn">品番追加</a>
+            <a href="{{ route('masta.number_insert') }}" class="btn btn-primary main_btn">品目追加</a>
             <div class="table_div">
                 <table id="number_list_table">
                     <thead>

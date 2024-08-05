@@ -66,7 +66,6 @@ class LongInfoController extends Controller
         $selectable_json = json_encode($selectable, JSON_PRETTY_PRINT);
         // 数量情報取得
         $quantity_arr = $this->_longinfoService->quantity_get($info_process_arr);
-
         //工場id、製造課id、作業者idを変数に格納
         $factory = $request->factory;
         $department = $request->department;

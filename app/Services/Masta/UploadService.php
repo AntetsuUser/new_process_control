@@ -122,6 +122,7 @@ class UploadService
                         $formattedDate =NULL;
                         $dayOfWeek  =NULL;
                     }
+                    $quantity !== null ? $quantity : 0;
                     // dump($day,$formattedDate,$quantity);
                     $json[$item_name][] =["day"=>$day,"weekday"=>$dayOfWeek,"target"=>$quantity];
                 }

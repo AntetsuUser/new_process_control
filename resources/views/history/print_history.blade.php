@@ -95,6 +95,36 @@
 
     // ページが読み込まれたときに初期状態を設定
     window.onload = toggleRows;
+    //再印刷ボタンを押したとき
+    let table = document.getElementById("print_history_table");
+    const update_btn = document.getElementsByClassName("reprint_btn");
+
+    for (let i = 0; i < update_btn.length; i++) 
+    {
+        update_btn[i].addEventListener("click", function () 
+        {
+            let ID = table.rows[i +1].cells[1].innerHTML
+            console.log((i +1) + "番目のボタンがクリックされた IDは " + ID)
+            const form = document.createElement('form');
+            form.action = "reprint"
+            form.method = "POST";
+            // CSRFトークンをフォームに追加
+            let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+            const formValue = document.createElement("input")
+            formValue.type = 'hidden'; 
+            formValue.name = "id"
+            formValue.value = ID
+            form.appendChild(formValue)
+            document.body.appendChild(form)
+            form.submit()
+        })
+    }
+
 </script>
 
 @endsection

@@ -23,7 +23,7 @@
             <input type="button" value="印刷" id="print_btn" class="btn btn--orange" onclick="window.print();">
         </form>
         <div id="print_main" class="print_main_area">
-        @foreach($print_arr as $value)
+        @foreach($print_history as $value)
         <p class="title">作業指示書 兼 現品票</p>
         <div class="row page_break">
                 <div class="container table">

@@ -137,6 +137,8 @@ route::prefix('/history')->controller(HistoryController::class)->group(function(
     route::get('/print','print')->name('history.print');
     //入力履歴
     route::get('/processing','processing')->name('history.processing');
+        //再印刷
+    route::post('/reprint','reprint')->name('history.reprint');
 
 
 });

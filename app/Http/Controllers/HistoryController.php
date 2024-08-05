@@ -31,4 +31,12 @@ class HistoryController extends Controller
         $processed_history = $this->_processedHistoryService->processed_history_get();  
         return view('history.processing_history',compact('processed_history'));
     }
+    public function reprint(Request $request)
+    {
+        $id = $request->id;
+
+        $print_history = $this->_printHistoyService->reprint($id);
+        // dd($print_history);
+        return view('history.reprint',compact('print_history'));
+    }
 }

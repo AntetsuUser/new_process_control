@@ -108,7 +108,7 @@ window.onload = (e)=>{
                 if(data != "[]")
                 {
 					//入力済みかどうか
-					if(jsonData[0].input_complete_flag == true)
+					if(jsonData[0].input_complete_flag == "true")
 					{
 						document.querySelector('#id-not-found').classList.add('not-found-none')
 						// let element_url = "https://processcontrol.antetsu-systems.com/result_input/?characteristic_id="+outputString;
