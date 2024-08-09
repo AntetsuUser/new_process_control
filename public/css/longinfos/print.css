@@ -1,7 +1,7 @@
 
 /* 戻るボタン */
 .back_btn {
-    width: 2.5%;
+    width: 15%;
     margin-left: 1%;
     vertical-align: middle;
     color: #000;
@@ -22,6 +22,22 @@
     width: 95%;
     /* break-after: page; */
     /* display: block; */
+}
+.no_form
+{
+        background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    text-align: inherit;
+    text-decoration: none;
+    box-shadow: none;
+    outline: none;
+    width: 16%;
+    font-size: 18px;
 }
 
 /* 印刷ボタン */
@@ -134,6 +150,7 @@ td {
 .table
 {
     width: 80%;
+    margin-bottom: 0px;
 }
 canvas
 {
@@ -146,10 +163,19 @@ canvas
 .page_break
 {
     page-break-after: always;
+    break-after:always;
 }
 .page_break:last-child
 {
+    background-color: #000;
     page-break-after: avoid;
+    page-break-after: auto;
+    break-after:avoid;
+    break-after: auto;
+    page-break-before: avoid;
+    page-break-before: auto;
+    break-before:avoid;
+    break-before: auto;
 }
 @media (min-width: 576px) 
 {
@@ -170,8 +196,12 @@ canvas
     @page {
         size: auto !important;
         /* size: landscape !important; */
-        /* margin: 1px; */
+        /* margin: -10px; */
+        /* margin: 1cm; または適切なマージン値 */
     }
+    html, body {
+        height: auto;
+        }
     .browser_back_area {
         display: none;
     }

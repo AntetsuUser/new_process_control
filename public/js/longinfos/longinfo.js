@@ -600,7 +600,8 @@ $('#print').on('click',function(){
             // 配列に格納
             //[品目コード、工程、納期、着手日、加工数、今まで何個加工したか、長期数量、設備番号、作業者id,工程番号]
             select_arr.push([item_code,process,delivery_date,formattedDate,processing_quantity,processing_all,long_term_all,lineNumbers,workersid,process_number]);
-        } 
+        }
+
     });
     if(allHaveClass)
     {
@@ -614,6 +615,27 @@ $('#print').on('click',function(){
             type: 'hidden',
             name: '_token',
             value: csrfToken
+        }));
+        // 隠しフィールドをフォームに追加
+        form.append($('<input>', {
+            type: 'hidden',
+            name: 'line',
+            value: line
+        }));
+        form.append($('<input>', {
+            type: 'hidden',
+            name: 'numbers',
+            value: numbers
+        }));
+        form.append($('<input>', {
+            type: 'hidden',
+            name: 'factory',
+            value: factory
+        }));
+        form.append($('<input>', {
+            type: 'hidden',
+            name: 'department',
+            value: department
         }));
         // データ配列をフォームに追加
     
@@ -799,3 +821,25 @@ function checkStockAvailability(parent_tr,input_value)
 
     return true;
 }
+////色のア悦明モーダル
+var open = $('#help_btn'),
+	close = $('.help_modal-close'),
+	container = $('.help_modal-container');
+
+//開くボタンをクリックしたらモーダルを表示する
+open.on('click',function(){	
+	container.addClass('active');
+	return false;
+});
+
+//閉じるボタンをクリックしたらモーダルを閉じる
+close.on('click',function(){	
+	container.removeClass('active');
+});
+
+//モーダルの外側をクリックしたらモーダルを閉じる
+$(document).on('click',function(e) {
+	if(!$(e.target).closest('.help_modal-body').length) {
+		container.removeClass('active');
+	}
+});

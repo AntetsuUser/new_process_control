@@ -110,11 +110,24 @@ class LongInfoService
                     //工程を配列に入れる(join_flagが1なら工程を結合してかえす)
                     $final_process =  $this->process_join($data['join_flag'],$child1_item_process,$child_part_number1);
                     //配列に入れる
-                    $process_arr[] = $final_process;
+                    if (!is_array($final_process)) {
+                        $process_arr[] = $final_process;
+                    }
+                    else {
+                        foreach ($final_process as $key => $value3) {
+                            $process_arr[] = $value3;
+                        }
+                    }
                     //工程を配列に入れる(join_flagが1なら工程を結合してかえす)
                     $final_process =  $this->process_join($data['join_flag'],$child2_item_process,$child_part_number2);
-                    //配列に入れる
-                    $process_arr[] = $final_process;
+                    if (!is_array($final_process)) {
+                        $process_arr[] = $final_process;
+                    }
+                    else {
+                        foreach ($final_process as $key => $value4) {
+                            $process_arr[] = $value4;
+                        }
+                    }
                     //加工できるのが親品目の2工程目だったら
                     if($value["process_number"] != "1")
                     {
@@ -149,7 +162,6 @@ class LongInfoService
                 }
             }
         }
-
         // 配列の工程の順番を並び替え
         foreach ($item_arr as $sort_key => $sort_value) {
             if (strpos($sort_value[0],'103') !== false) {
@@ -294,7 +306,16 @@ class LongInfoService
         }
         else {
             # code...
+            $process = [];
             //結合判定が0で親品番でもない時
+            foreach ($process_arr as $key => $value) 
+            {
+                $process_valule = str_replace('/', '', $value['process']);
+                $text = $process_text.$process_valule;
+                $process[] = $text;
+            }
+            // dd("aa");
+            return $process;
         }
     }
 

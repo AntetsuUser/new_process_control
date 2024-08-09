@@ -5,13 +5,15 @@ $(document).ready(function()
     console.log(select_factory_id);
     if(select_factory_id)
     {
+        let select_factory_text = $('#factory_id option:selected').text();
         //select_factory_idがある場合
-        $('#factory_name').val(select_factory_id);
+        $('#factory_name').val(select_factory_text);
 
         let select_department_id = $('#department_id').val();
+        let select_department_text = $('#department_id option:selected').text();
         if (select_department_id)
         {
-            $('#department_name').val(select_department_id);
+            $('#department_name').val(select_department_text);
         }
 
         ajax(select_factory_id);

@@ -63,6 +63,7 @@
                         <input type="hidden" name="workcenter" value="{{ $direction_date["workcenter"] }}">
                         <input type="hidden" name="processing_quantity" value="{{ $direction_date["processing_quantity"] }}">
                         <input type="hidden" name="processing_item" value="{{ $direction_date["processing_item"] }}">
+                        <input type="hidden" name="process_number" value="">
                         <table class="main_tbl" id="main_tbl">
                             
                             <tr>

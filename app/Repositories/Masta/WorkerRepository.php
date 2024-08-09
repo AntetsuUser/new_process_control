@@ -18,6 +18,7 @@ class WorkerRepository
 
         try {
             $data['id'] = $user_id;
+            // dd($data);
 
             Worker::upsert(
                 // 追加もしくは更新するデータ（idがnullの場合は追加）
@@ -35,7 +36,7 @@ class WorkerRepository
             DB::rollback();
             // 例外をキャッチしてエラー処理を行う
             // 例外をログに記録したり、ユーザーにエラーメッセージを表示したりできる
-            throw $e;
+            throw $th;
         }
     
     }

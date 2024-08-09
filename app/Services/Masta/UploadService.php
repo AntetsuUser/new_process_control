@@ -116,6 +116,10 @@ class UploadService
                         // 曜日の短縮形を取得する
                         $dayOfWeek = $formattedDate;
                     }
+                    // else{
+                    //     $formattedDate =NULL;
+                    //     $dayOfWeek  =NULL;
+                    // }
 
                     if($formattedDate == "1970-01-01")
                     {
@@ -207,6 +211,10 @@ class UploadService
                             // 曜日の短縮形を取得する
                             $dayOfWeek = $formattedDate;
                         }
+                        else {
+                            $dayOfWeek = NULL;
+                        }
+                        
                         $days[] = $day;
                         $weekdays[] =  $dayOfWeek;
                         $target[] = $value !== null ? $value : 0;
@@ -345,11 +353,14 @@ class UploadService
                 /** /備考 **/
                 $note = $firstSheet->getCell('L' . $row)->getValue();
 
-                // in_arrayで値が存在するかを確認
-                if (in_array($item_code, $processingItems)) {
-                    $shipment_data[] =  ['item_code' => $item_code, 'item_name' => $item_name,'delivery_date' => $formattedDate, 
-                                'ordering_quantity' => $ordering_quantity, 'note' => $note];
-                } 
+                if($note && strpos($note, '材不') === false) 
+                {
+                    // in_arrayで値が存在するかを確認
+                    if (in_array($item_code, $processingItems)) {
+                        $shipment_data[] =  ['item_code' => $item_code, 'item_name' => $item_name,'delivery_date' => $formattedDate, 
+                                    'ordering_quantity' => $ordering_quantity, 'note' => $note];
+                    } 
+                }
             }
         }
         if (!empty($shipment_data)) 

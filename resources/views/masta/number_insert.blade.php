@@ -27,7 +27,7 @@
         <p class="contents_title">品目追加</p>
     @endif 
     <div class="masta_area">
-        <form action="" method ="POST">
+        <form action="" method ="POST" onsubmit="return false;">
             @csrf
             <div class="row  justify-content-center">
                 {{-- 親品番の品目情報 --}}
@@ -182,7 +182,7 @@
                         </div>
                         <div class="number_item">
                             <div class="number_item_title">ストア・W/C</div>
-                            <input type="text" name="process_store_{{ $j }}[]" value="{{ $data[$i-1]['process'][$j-1]->store }}" readonly>
+                            <input type="text" name="process_store_{{ $j }}[]" value="{{ $data[$i-1]['process'][$j-1]->store }}" readonly onkeydown="enableBackspace(this, event)">
                             
                         </div>
                         <div class="number_item">
@@ -209,7 +209,7 @@
                         </div>
                         <div class="number_item">
                             <div class="number_item_title">ストア・W/C</div>
-                            <input type="text" name="process_store_{{ $j }}[]"  readonly>
+                            <input type="text" name="process_store_{{ $j }}[]"  readonly onkeydown="enableBackspace(this, event)">
                             
                         </div>
                         <div class="number_item">
@@ -243,6 +243,22 @@
         </form>
     </div>
 </div>
+<script>
+function enableBackspace(input, event) {
+    // Backspace キーが押された場合のみ入力を許可
+    if (event.key === 'Backspace') {
+        input.readOnly = false;
+    } else {
+        input.readOnly = true;
+        event.preventDefault(); // 他のキー入力を防ぐ
+    }
+
+    // Backspaceキーで削除された後、再度readonlyを設定
+    input.addEventListener('input', function() {
+        input.readOnly = true;
+    });
+}
+</script>
 
 @if(config('app.env') === 'production')
     <script src="{{secure_asset('js/masta/number.js')}}"></script>

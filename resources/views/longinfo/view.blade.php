@@ -16,7 +16,7 @@
 <div class="browser_back_area container-fluid">
     <div class="row">
         <div class="col-md-1">
-            <a href="#" onclick="history.back(-1);return false;"><img class="back_btn" src="{{ asset('img/icon/back.png') }}" alt=""><span>戻る</span></a>
+            <a href="{{ route('longinfo.select') }}"><img class="back_btn" src="{{ asset('img/icon/back.png') }}" alt=""><span>戻る</span></a>
         </div>
         <div class="col-md-1">
             <button id="print" class="btn main_btn print">印刷</button>
@@ -68,11 +68,31 @@
                 </div>
             </div>
         </div>
+        <div class="help_modal-container">
+            <div class="help_modal-body">
+                <!-- 閉じるボタン -->
+                <div class="help_modal-close">×</div>
+                <!-- モーダル内のコンテンツ -->
+                <div class="help_modal-content">
+                    <h1 class="help_title">色の役割</h1>
+                    <div class="flex"><p>選択可能なセル</p><div class="color_box set_cel">残12</div></div>
+                    <div class="flex"><p>リードタイム</p><div class="color_box read_time">残12</div></div>
+                    <div class="flex"><p>負荷予測</p><div class="color_box read_time today_task">残12</div></div>
+                    <div class="flex"><p>数量選択時</p><div class="color_box selected">残12</div></div>
+                    <div class="flex"><p>現在作業中</p><div class="color_box in_work">残12</div></div>
+                </div>
+            </div>
+        </div>
         <div class="col-md-12">
             <div class="scrolltable">
                 {{-- 設備番号と作業者を非表示で表示 --}}
                 <input type="hidden" name="line_numbers" value="{{ $line_numbers }}">
                 <input type="hidden" name="workers" value="{{ $workers }}">
+                <input type="hidden" name="line"  value="{{ $line }}">
+                <input type="hidden" name="numbers"  value="{{ $numbers }}">
+                <input type="hidden" name="factory"  value="{{ $factory }}">
+                <input type="hidden" name="department"  value="{{ $department }}">
+                
                 <table id="info_table">
                     <thead>
                         <tr>
@@ -143,6 +163,13 @@
 </div>
 <div hidden id="data-container" data-data="{{ json_encode($work_arr) }}"></div>
 <input type="hidden" name="process_able_area" id="process_able_area" value="{{ $selectable_json }}">
+<script>
+    var line = @json($line);
+    var numbers = @json($numbers);
+    var factory = @json($factory);
+    var department = @json($department);
+</script>
+
 @if(config('app.env') === 'production')
     <script src="{{secure_asset('js/longinfos/longinfo.js')}}" ></script>
 

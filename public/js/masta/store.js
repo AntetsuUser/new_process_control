@@ -5,9 +5,25 @@ $(document).ready(function()
     console.log(select_factory_id);
     if(select_factory_id)
     {
+        let select_factory_text = $('#factory_id option:selected').text();
         //select_factory_idがある場合
-        $('#factory_name').val(select_factory_id);
+        $('#factory_name').val(select_factory_text);
 
+        let select_department_id = $('#department_id').val();
+        let select_department_text = $('#department_id option:selected').text();
+        if (select_department_id)
+        {
+            $('#department_name').val(select_department_text);
+        }
+
+        ajax(select_factory_id);
+    }
+    // 編集のとき
+    if(select_factory_id)
+    {
+        // inputタグに設定
+        $('#factory_name').val(select_factory_id);
+        
         let select_department_id = $('#department_id').val();
         if (select_department_id)
         {
@@ -15,6 +31,19 @@ $(document).ready(function()
         }
 
         ajax(select_factory_id);
+    }
+
+    // 編集のときに工場・製造課を変更しなかったときに初期値を渡すようにする
+    let init_factory_text = $('#factory_id option:selected').text();
+    if (init_factory_text)
+    {
+        $('#factory_name').val(init_factory_text);
+
+        let init_depertment_text = $('#department_id option:selected').text();
+        if (init_depertment_text)
+        {
+            $('#department_name').val(init_depertment_text);
+        }
     }
 
     //selectが変更されたとき

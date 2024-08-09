@@ -45,7 +45,7 @@
                 <div>
                     <p>工場</p>
                     <select name="factory_id" id="factory_id">
-                        <option value="{{ $data->factory_name ?? '' }}" selected>{{ $data->factory_name ?? '--- 選択してください ---' }}</option>
+                        <option value="{{ $data->factory_id ?? '' }}" selected>{{ $data->factory_name ?? '--- 選択してください ---' }}</option>
                         @foreach ($factory as $value)
                             {{-- バリデーションに引っかかったときに前回選んだ工場名と同じものがあればselectedを付与 --}}
                             <option value="{{ $value->id }}" {{ $value->id == old('factory_id') ? 'selected' : '' }}>{{ $value->name }}</option>
@@ -61,7 +61,7 @@
                     <p>部署</p>
                     @if (isset($data))
                         <select name="department_id" id="department_id">
-                            <option value="{{ $data->department_name }}" {{ $data->department_id == old('department_id') ? 'selected' : '' }}>{{ $data->department_name }}</option>
+                            <option value="{{ $data->department_id }}" {{ $data->department_id == old('department_id') ? 'selected' : '' }}>{{ $data->department_name }}</option>
                         </select>
                     @else
                         <select name="department_id" id="department_id">

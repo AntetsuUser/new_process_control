@@ -15,7 +15,7 @@
 
 @section('content')
 <div class="browser_back_area">
-     <a href="#" onclick="window.history.back(); return false;"><img class="back_btn" src="{{ asset('img/icon/back.png') }}" alt=""><span>戻る</span></a>
+     <a href="#" onclick="window.history.back(); return false;"><img class="back_btn" src="{{ asset('img/icon/back.png') }}" alt="" style="width: 2.5%;"><span>戻る</span></a>
 </div>
 <div class="container-fluid">
     <div class="row justify-content-center">

@@ -51,7 +51,11 @@ class LongInfoController extends Controller
         }
         $numbers = $request->numbers;
         $line_numbers = $line . $numbers;
-        
+
+        $line = $request->line;
+        $numbers = $request->numbers;
+        $factory = $request->factory;
+        $department = $request->department;
 
         //設備番号で加工可能な品番を取得してくる
         // dd($line_numbers);
@@ -75,16 +79,24 @@ class LongInfoController extends Controller
         // dd($quantity_arr,$date_arr);
 
         return view('longinfo.view', compact('info_process_arr', 'stock_arr', 'date_arr', 'quantity_arr',
-                                            'selectable_json','lot_arr','line_numbers','workers','work_arr'));
+                                            'selectable_json','lot_arr','line_numbers','workers','work_arr','line','numbers','factory','department'));
     }
+    //指示書印刷画面に遷移
     public function print(Request $request)
     {
-                
-        $post_data = $request->data;
+
+        $line = $request->line;
+        $numbers = $request->numbers;
+        $factory = $request->factory;
+        $department = $request->department;
         // ↓この配列が渡される
         //[[品目コード、工程、納期、着手日、加工数、今まで何個加工したか、長期数量、設備番号、作業者id]]
         //ここでcharacteristic_id,item_name,parent_name,child_part_number1,child_part_number2,input_complete_flagを配列にいれて配列をviewに渡す
         //品番の在庫と長期数を計算してデータベースに反映させる
+        $post_data = $request->data;
+        //作業者idを抜き出す
+        $arr = explode(',', $post_data[0]);
+        $workers = $arr[8];
         $print_arr =[];
         foreach ($post_data as $arr_count => $value) 
         {
@@ -101,7 +113,7 @@ class LongInfoController extends Controller
             $this->_longinfoService->long_info_quantity($data_arr,$process_number);
             $print_arr[] = $data_arr;
         }
-        return view('longinfo.print',compact('print_arr'));
+        return view('longinfo.print',compact('print_arr','line','numbers','factory','department','workers' ));
     }
     
 }

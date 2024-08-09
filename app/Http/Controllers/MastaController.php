@@ -269,7 +269,6 @@ class MastaController extends Controller
             $data = $this->_mastacommonService->findById($DBname,$DBmodelname,$id);
         }
         $factory = $this->_mastacommonService->factory_get();
-
         return view('masta.equipment_insert', compact('data','factory'));
     }
     //設備確認画面
@@ -292,6 +291,7 @@ class MastaController extends Controller
             // 編集する人のid取得して確認画面に渡す
             $id = $request->input('id');
         }
+        // dd($data);
         return view('masta.equipment_confirm', compact('data','id'));
     }
     //設備登録・追加

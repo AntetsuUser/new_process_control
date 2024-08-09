@@ -15,7 +15,16 @@
 
 @section('content')
 <div class="browser_back_area">
-     <a href="#" onclick="window.history.back(); return false;"><img class="back_btn" src="{{ asset('img/icon/back.png') }}" alt=""><span>戻る</span></a>
+    <form action="{{ route('longinfo.view') }}" method="POST">
+        @csrf
+        <input type="hidden" name="factory" value="{{ $factory }}">
+        <input type="hidden" name="department" value="{{ $department }}">
+        <input type="hidden" name="line" value="{{ $line }}">
+        <input type="hidden" name="numbers" value="{{ $numbers }}">
+        <input type="hidden" name="workers" value="{{ $workers }}">
+        <button type="submit" class="no_form"><img class="back_btn" src="{{ asset('img/icon/back.png') }}" alt="">戻る</button>
+    </form>
+
 </div>
 <div class="container-fluid">
     <div class="row justify-content-center">
@@ -124,11 +133,24 @@
                 /// 要素に生成されたQRコードを表示
                 var $qrCode = document.getElementById('qrCode' + "{{$value['characteristic_id']}}");
                 qrCode.append($qrCode);
+                
             </script>
         @endforeach
         </div>
     </div>
 </div>
+<script>
+    // jsで最後の要素に改行刺せないようなcssを適応させる
+    $(document).ready(function() {
+        $('.page_break').last().css('page-break-after', 'avoid');
+    });
+    
+    window.addEventListener('beforeunload', function(event) {
+        event.preventDefault(); // 一部のブラウザでは必要
+        event.returnValue = ''; 
+    });
+
+</script>
 
 
 
