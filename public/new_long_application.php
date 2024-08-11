@@ -10,6 +10,32 @@ $password = 'andadmin';
 
 $process_DB = 'laravel';
 
+//jsonファイルを確認する
+//new_data.jsonとdata.jsonがあったなかった場合処理しない
+//あった場合data.jsonを消してnew_data.jsonをdata.jsonとして保存する
+
+// ファイルパスの指定
+$newDataFile = 'new_data.json';
+$dataFile = 'data.json';
+
+// ファイルの存在確認
+if (!file_exists($newDataFile) || !file_exists($dataFile)) {
+    echo "必要なファイルが見つかりません。処理を中止します。";
+    exit; // スクリプトを終了
+}
+
+// data.jsonを削除
+if (file_exists($dataFile)) {
+    unlink($dataFile);
+}
+
+// new_data.jsonをdata.jsonとして保存
+rename($newDataFile, $dataFile);
+
+echo "ファイルの更新が完了しました。";
+
+
+
 function databaseExists($host, $username, $password, $dbname) {
     try {
         $pdo = new PDO("mysql:host=$host", $username, $password);
@@ -22,21 +48,39 @@ function databaseExists($host, $username, $password, $dbname) {
         return false;
     }
 }
+// 必要なテーブルが存在するか確認する関数
+function tableExists($host, $username, $password, $dbname, $tablename) {
+    $conn = new mysqli($host, $username, $password, $dbname);
+    if ($conn->connect_error) {
+        die("データベース接続に失敗しました: " . $conn->connect_error);
+    }
+    
+    $result = $conn->query("SHOW TABLES LIKE '$tablename'");
+    $conn->close();
+    
+    return $result && $result->num_rows > 0;
+}
+
 // データベースの存在確認と接続
 if (!databaseExists($host, $username, $password, $dbname_source)) {
     echo "データベース '$dbname_source' は存在しません。";
     exit; // スクリプトを終了
 }
 
-if (!databaseExists($host, $username, $password, $dbname_dest)) {
-    echo "データベース '$dbname_dest' は存在しません。";
-    exit; // スクリプトを終了
+
+
+// 各データベース内の必要なテーブルの存在確認
+$requiredTables = ['77AN704H0R15', '77AN704W0R15', '77AN704G0R15']; // 必要なテーブルのリスト
+
+foreach ($requiredTables as $table) {
+    if (!tableExists($host, $username, $password, $dbname_source, $table)) {
+        echo "データベース '$dbname_source' に必要なテーブル '$table' が存在しません。";
+        exit; // スクリプトを終了
+    }
+    
+
 }
 
-if (!databaseExists($host, $username, $password, $process_DB)) {
-    echo "データベース '$process_DB' は存在しません。";
-    exit; // スクリプトを終了
-}
 
 // temp_longinfoで在庫数量の引き当て
 // 在庫数量取得
