@@ -15,7 +15,7 @@
 
 @section('content')
 <div class="browser_back_area">
-    <form action="{{ route('longinfo.view') }}" method="POST">
+    <form action="{{ route('longinfo.view_post') }}" method="POST">
         @csrf
         <input type="hidden" name="factory" value="{{ $factory }}">
         <input type="hidden" name="department" value="{{ $department }}">
@@ -145,10 +145,6 @@
         $('.page_break').last().css('page-break-after', 'avoid');
     });
     
-    window.addEventListener('beforeunload', function(event) {
-        event.preventDefault(); // 一部のブラウザでは必要
-        event.returnValue = ''; 
-    });
 
 </script>
 

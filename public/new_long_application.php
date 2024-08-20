@@ -125,24 +125,18 @@ foreach ($item_process_stock as $item_name => $process) {
 
                 // データが取得できた場合のみ処理を実行
                 if (!empty($item_arr)) {
-                    if($key == "process6")
-                    {
-                        $remaining = $process["process6"];
-                    }
-                    else if($key == "process5"){
-                        $remaining = $process["process6"] + $process["process5"];
-                    }else if($key == "process4")
-                    {
-                        $remaining = $process["process6"] + $process["process5"] + $process["process4"];
-                    }else if($key == "process3")
-                    {
-                        $remaining = $process["process6"] + $process["process5"] + $process["process4"] + $process["process3"];
-                    }else if($key == "process2")
-                    {
-                        $remaining = $process["process6"] + $process["process5"] + $process["process2"];
-                    }else if($key == "process1")
-                    {
-                        $remaining = $process["process6"] + $process["process5"] + $process["process2"] + $process["process1"];
+                    if ($key == "process6") {
+                        $remaining = max(0, $process["process6"]);
+                    } else if ($key == "process5") {
+                        $remaining = max(0, $process["process6"]) + max(0, $process["process5"]);
+                    } else if ($key == "process4") {
+                        $remaining = max(0, $process["process6"]) + max(0, $process["process5"]) + max(0, $process["process4"]);
+                    } else if ($key == "process3") {
+                        $remaining = max(0, $process["process6"]) + max(0, $process["process5"]) + max(0, $process["process4"]) + max(0, $process["process3"]);
+                    } else if ($key == "process2") {
+                        $remaining = max(0, $process["process6"]) + max(0, $process["process5"]) + max(0, $process["process2"]);
+                    } else if ($key == "process1") {
+                        $remaining = max(0, $process["process6"]) + max(0, $process["process5"]) + max(0, $process["process2"]) + max(0, $process["process1"]);
                     }
                     foreach ($item_arr as $item => $val) {
 

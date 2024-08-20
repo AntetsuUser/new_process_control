@@ -41,10 +41,15 @@ route::prefix('/longinfo')->controller(LongInfoController::class)->group(functio
 {
     //製造課選択画面
     route::get('/select','select')->name('longinfo.select');
-    //長期情報画面
-    route::post('/view','view')->name('longinfo.view');
+    //長期情報画面POST処理
+    route::post('/view_post','view_post')->name('longinfo.view_post');
+    //長期画面表示するためのGET
+    route::get('/view','view')->name('longinfo.view');
+
+    //指示書印刷画面POST処理
+    route::post('/print_post','print_post')->name('longinfo.print_post');
     //指示書印刷画面
-    route::post('/print','print')->name('longinfo.print');
+    route::get('/print','print')->name('longinfo.print');
 
 });
 

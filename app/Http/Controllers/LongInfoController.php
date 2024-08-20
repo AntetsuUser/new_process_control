@@ -38,7 +38,7 @@ class LongInfoController extends Controller
     }
 
     //長期情報表示
-    public function view(Request $request)
+    public function view_post(Request $request)
     {
         //印刷履歴から作業中のデータを取得してくる
         $work_arr =  $this->_longinfoService->get_in_work();
@@ -78,42 +78,97 @@ class LongInfoController extends Controller
         $lot_arr = $this->_longinfoService->lot_get($info_process_arr);
         // dd($quantity_arr,$date_arr);
 
-        return view('longinfo.view', compact('info_process_arr', 'stock_arr', 'date_arr', 'quantity_arr',
-                                            'selectable_json','lot_arr','line_numbers','workers','work_arr','line','numbers','factory','department'));
-    }
-    //指示書印刷画面に遷移
-    public function print(Request $request)
-    {
+            // セッションにデータを保存
+        $request->session()->put('info_process_arr', $info_process_arr);
+        $request->session()->put('stock_arr', $stock_arr);
+        $request->session()->put('date_arr', $date_arr);
+        $request->session()->put('quantity_arr', $quantity_arr);
+        $request->session()->put('selectable_json', $selectable_json);
+        $request->session()->put('lot_arr', $lot_arr);
+        $request->session()->put('line_numbers', $line_numbers);
+        $request->session()->put('workers', $workers);
+        $request->session()->put('work_arr', $work_arr);
+        $request->session()->put('line', $line);
+        $request->session()->put('numbers', $numbers);
+        $request->session()->put('factory', $factory);
+        $request->session()->put('department', $department);
 
+        // GETリクエストにリダイレクト
+        return redirect()->route('longinfo.view');
+    }
+
+    public function view(Request $request)
+    {
+        // セッションからデータを取得
+        $info_process_arr = $request->session()->get('info_process_arr', []);
+        $stock_arr = $request->session()->get('stock_arr', []);
+        $date_arr = $request->session()->get('date_arr', []);
+        $quantity_arr = $request->session()->get('quantity_arr', []);
+        $selectable_json = $request->session()->get('selectable_json', '');
+        $lot_arr = $request->session()->get('lot_arr', []);
+        $line_numbers = $request->session()->get('line_numbers', '');
+        $workers = $request->session()->get('workers', '');
+        $work_arr = $request->session()->get('work_arr', []);
+        $line = $request->session()->get('line', '');
+        $numbers = $request->session()->get('numbers', '');
+        $factory = $request->session()->get('factory', '');
+        $department = $request->session()->get('department', '');
+        // ビューにデータを渡す
+        return view('longinfo.view', compact('info_process_arr', 'stock_arr', 'date_arr', 'quantity_arr',
+                                            'selectable_json', 'lot_arr', 'line_numbers', 'workers', 'work_arr', 
+                                            'line', 'numbers', 'factory', 'department'));
+    }
+    //指示書印刷画面の値処理
+    public function print_post(Request $request)
+    {
         $line = $request->line;
         $numbers = $request->numbers;
         $factory = $request->factory;
         $department = $request->department;
-        // ↓この配列が渡される
-        //[[品目コード、工程、納期、着手日、加工数、今まで何個加工したか、長期数量、設備番号、作業者id]]
-        //ここでcharacteristic_id,item_name,parent_name,child_part_number1,child_part_number2,input_complete_flagを配列にいれて配列をviewに渡す
-        //品番の在庫と長期数を計算してデータベースに反映させる
+
+        // POSTデータを取得
         $post_data = $request->data;
-        //作業者idを抜き出す
+
+        // 作業者IDを抜き出す
         $arr = explode(',', $post_data[0]);
         $workers = $arr[8];
-        $print_arr =[];
+        $print_arr = [];
+
         foreach ($post_data as $arr_count => $value) 
         {
-            //指示書に必要な情報えお配列に入れてprint_historyDBにデータを入れる
-            //ここで固有ID、品目名称、親品番、子品番１、子品番２、作業フラグを配列にいれて配列をviewに渡す
-            // カンマで分割して配列に変換
+            // 指示書に必要な情報を配列に入れて処理
             $Array = explode(',', $value);
-            // dd($Array);
-            // 工程の番号
             $process_number = $Array[9];
-            $data_arr = $this->_longinfoService->print_date_create($Array,$arr_count);
-            //選択した数量ぶん長期情報DBから減らす、在庫を増やす
-            //parent_nameとprocessとprocess_numberとdelivery_dateとprocessing_quantity
-            $this->_longinfoService->long_info_quantity($data_arr,$process_number);
+            $data_arr = $this->_longinfoService->print_date_create($Array, $arr_count);
+            $this->_longinfoService->long_info_quantity($data_arr, $process_number);
             $print_arr[] = $data_arr;
         }
-        return view('longinfo.print',compact('print_arr','line','numbers','factory','department','workers' ));
+
+        // セッションにデータを保存
+        $request->session()->put('print_arr', $print_arr);
+        $request->session()->put('line', $line);
+        $request->session()->put('numbers', $numbers);
+        $request->session()->put('factory', $factory);
+        $request->session()->put('department', $department);
+        $request->session()->put('workers', $workers);
+
+        // GETリクエストにリダイレクト
+        return redirect()->route('longinfo.print');
+    }
+
+    //指示書印刷画面に遷移
+    public function print(Request $request)
+    {
+        // セッションからデータを取得
+        $print_arr = $request->session()->get('print_arr', []);
+        $line = $request->session()->get('line', '');
+        $numbers = $request->session()->get('numbers', '');
+        $factory = $request->session()->get('factory', '');
+        $department = $request->session()->get('department', '');
+        $workers = $request->session()->get('workers', '');
+
+        // ビューにデータを渡す
+        return view('longinfo.print', compact('print_arr', 'line', 'numbers', 'factory', 'department', 'workers'));
     }
     
 }

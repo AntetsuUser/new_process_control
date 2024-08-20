@@ -168,7 +168,9 @@ class LongInfoService
                 $item_arr[$sort_key] = array_reverse($sort_value);
             }
         }
-        // dd($item_arr);
+        foreach ($item_arr as $sort_key => $sort_value) {
+            $item_arr[$sort_key] = array_unique($item_arr[$sort_key]);
+        }
         // dd($day_arr);
         // 各品番の日付を格納した配列をソート
         uasort($day_arr, function($a, $b) {
@@ -348,7 +350,6 @@ class LongInfoService
         foreach ($item_arr as $key => $process) {
             // 品番テーブルからデータ取得
             $db_quantity = $this->_longinfoRepository->quantity_get($key);
-            // dump($db_quantity);
             foreach ($db_quantity as $quant_value) {
                 // 長期元数量を格納
                 $quantity_arr[$key][0][] = $quant_value->target;

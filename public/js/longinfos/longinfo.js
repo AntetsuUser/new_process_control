@@ -31,15 +31,15 @@ function in_work_cell() {
     let unmatched_arr = {};
     let item_row, row, col;
     dataFromController.forEach(element => {
-        if (element['capture_date'] === th_day) {
+        if (element['capture_date'] == th_day) {
             let delivery_date = element['delivery_date'];
             // 納期が遅延している場合の処理
-            if (table.eq(3).text() === delivery_date) {
+            if (table.eq(3).text() == delivery_date) {
                 col = 3;
             } else {
                 // 納期が遅延していない場合の処理
                 table.each(function (i) {
-                    if (element['delivery_date'] === $(this).attr('id')) {
+                    if (element['delivery_date'] == $(this).attr('id')) {
                         col = i ;
                     }
                 });
@@ -47,28 +47,30 @@ function in_work_cell() {
 
 
             // 親アイテム名とプロセスの一致を確認してクラスを追加
+            let item_flag = false;
             table_itemname_row.each(function (i) {
                 let item_name = $(this).text();
-                if (item_name === element['parent_name']) {
+                if (item_name == element['parent_name']) {
                     item_row = i;
+                    item_flag  = true
                     return false; // ループから抜ける
                 }
             });
 
-            if (item_row !== undefined) {
+            if (item_row != undefined && item_flag ==true) {
                 let table_tr_index = $("#info_table tbody tr");
                 let numberOfRows = table_tr_index.length;
 
                 for (let index = item_row; index < numberOfRows; index++) {
                     let process = table_tr_index.eq(index).find("td:nth-child(2)").text();
-                    if (process === element['process']) {
+                    if (process == element['process']) {
                         row = index;
                         break;
                     }
                 }
             }
 
-            if (row !== undefined && col !== undefined) {
+            if (row != undefined && col != undefined && item_flag ==true) {
 
                 $("#info_table tbody tr").eq(row).find('td').eq(col).addClass('in_work');
             }
@@ -76,17 +78,20 @@ function in_work_cell() {
         } else {
             // 長期作成日が違った場合
             unmatched = true;
+            console.log("よばれた")
             addToUnmatchedArr(unmatched_arr, element['parent_name'], element['process'], element['processing_quantity']);
         }
     });
-
-    if (unmatched === true) {
+    if (Object.keys(unmatched_arr).length > 0) {
+        console.log(unmatched_arr);
         Object.keys(unmatched_arr).forEach(parent_name => 
         {
+            let item_flag = false;
             // 親アイテム名とプロセスの一致を確認してクラスを追加
             table_itemname_row.each(function (i) {
                 let item_name = $(this).text();
-                if (item_name === parent_name) {
+                if (item_name == parent_name) {
+                    item_flag = true;
                     item_row = i;
                     return false; // ループから抜ける
                 }
@@ -94,7 +99,7 @@ function in_work_cell() {
             // console.log(item_row)
             Object.keys(unmatched_arr[parent_name]).forEach(process_text => 
             {
-                if (item_row !== undefined) 
+                if (item_row !== undefined && item_flag == true) 
                 {
                     let table_tr_index = $("#info_table tbody tr");
                     let numberOfRows = table_tr_index.length;
@@ -106,28 +111,31 @@ function in_work_cell() {
                             break;
                         }
                     }
-                }
-                let col = 3;
-                //ここで色を塗る
-                let td_table = $("#info_table tbody tr").eq(item_row+1).find('td');
-                //色を塗るtdy要素
-                let color_td_table = $("#info_table tbody tr").eq(row).find('td');
-                let rows = td_table.length;                    
-                let remaining_quantity = Number(unmatched_arr[parent_name][process_text]);
-                for (let i = col; i < rows; i++) {
-                    let quantity = td_table.eq(i).text();
-                    if (quantity !== "") {
-                        quantity = Number(quantity);
-                        if (isNaN(quantity)) continue;
+                    let col = 3;
+                    //ここで色を塗る
+                    let td_table = $("#info_table tbody tr").eq(item_row+1).find('td');
+                    //色を塗るtdy要素
+                    let color_td_table = $("#info_table tbody tr").eq(row).find('td');
+                    let rows = td_table.length;                    
+                    let remaining_quantity = Number(unmatched_arr[parent_name][process_text]);
+                    console.log(parent_name)
+                    for(let i = rows - 1; i >= col; i--){
+                        let quantity = td_table.eq(i).text();
+                        let item_quantity = color_td_table.eq(i).text().replace('残', '');
+                        if(quantity != "" &&  (Number(quantity) != Number(item_quantity)))
+                        {
+                            console.log(quantity)
+                            console.log(item_quantity)
+                            quantity = Number(quantity);
+                            if (remaining_quantity -= quantity >= 0) {
 
-                        if (remaining_quantity -= quantity >= 0) {
-
-                            color_td_table.eq(i).addClass('in_work');
-                        }
-                        remaining_quantity -= quantity;
-                        // 残りの数量が0未満になったらループを終了する場合は以下のブロックをアンコメントしてください
-                        if (remaining_quantity < 0) {
-                            break;
+                                color_td_table.eq(i).addClass('in_work');
+                            }
+                            remaining_quantity -= quantity;
+                            // 残りの数量が0未満になったらループを終了する場合は以下のブロックをアンコメントしてください
+                            if (remaining_quantity < 0) {
+                                break;
+                            }
                         }
                     }
                 }
@@ -606,7 +614,7 @@ $('#print').on('click',function(){
     if(allHaveClass)
     {
         let form = $('<form>', {
-            action: '/longinfo/print',
+            action: '/longinfo/print_post',
             method: 'post'
         });
         // CSRFトークンをフォームに追加

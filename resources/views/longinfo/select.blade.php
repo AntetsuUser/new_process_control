@@ -25,7 +25,7 @@
         <div class="main_contents">
             <div class="main_box">
                 <div class="sub_box">
-                    <form action="{{ route('longinfo.view') }}" method="POST">
+                    <form action="{{ route('longinfo.view_post') }}" method="POST">
                         @csrf
                         <p>工場</p>
                         <select name="factory" id="factory" class="lavel input_color" >
