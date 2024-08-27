@@ -40,6 +40,8 @@ class LongInfoController extends Controller
     //長期情報表示
     public function view_post(Request $request)
     {
+        //ip取得
+        $ip =  $request-> ip();
         //印刷履歴から作業中のデータを取得してくる
         $work_arr =  $this->_longinfoService->get_in_work();
         // dd($work_arr);
@@ -60,7 +62,9 @@ class LongInfoController extends Controller
         //設備番号で加工可能な品番を取得してくる
         // dd($line_numbers);
         $send_arr = $this->_longinfoService->longinfo_date($line_numbers);
+
         $info_process_arr = $send_arr["item_sorted_arr"];
+
         $stock_arr = $send_arr["stock_arr"];
         //表示する配列をもらう
         // 日付データ取得
@@ -76,7 +80,6 @@ class LongInfoController extends Controller
         $workers = $request->workers;
         //ロット数を取得してくる
         $lot_arr = $this->_longinfoService->lot_get($info_process_arr);
-        // dd($quantity_arr,$date_arr);
 
             // セッションにデータを保存
         $request->session()->put('info_process_arr', $info_process_arr);

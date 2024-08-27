@@ -78,14 +78,22 @@ class UploadService
         {
             // C列の品番を取得
             $item_name = $sheet->getCell('C' . $row)->getValue();
-            
+                        
             // 数字が最初に出現する位置を取得
             $number_position = strcspn($item_name, '0123456789');
-            // 文字の除去
-            $item_name = substr($item_name, $number_position);
+
+            // 数字が出現するまでに "X" が含まれているか確認
+            $contains_X_before_number = strpos(substr($item_name, 0, $number_position), 'X') !== false;
+
+            if ($contains_X_before_number) {
+                // "X" を残して数字の直前から始める
+                $item_name = substr($item_name, strpos($item_name, 'X'));
+            } else {
+                // 数字から始める
+                $item_name = substr($item_name, $number_position);
+            }
             //マスタに登録されているチェック
             $mastadata = $this->_uploadRepository->isInMaster($item_name);
-
             //マスタに登録されていなかったら
             if ($mastadata == false) 
             {
@@ -338,13 +346,27 @@ class UploadService
                 //日付け数値から文字列に変換
                 $dateValue = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($delivery_date);
                 $formattedDate = $dateValue->format('Y-m-d'); // 希望の日付フォーマットに変換 
-                
+
                 /** /品目コード **/
                 $code = $firstSheet->getCell('B' . $row)->getValue();
+
                 // 数字が最初に出現する位置を取得
                 $number_position = strcspn($code, '0123456789');
+
+                // 数字が出現するまでに "X" が含まれているか確認
+                $contains_X_before_number = strpos(substr($code, 0, $number_position), 'X') !== false;
+
+                if ($contains_X_before_number) {
+                    // "X" を残して数字の直前から始める
+                    $item_code = substr($code, strpos($code, 'X'));
+                } else {
+                    // 数字から始める
+                    $item_code = substr($code, $number_position);
+                }
+
                 // 文字の除去
                 $item_code = substr($code, $number_position);
+
 
                 /** /品目名称 **/
                 $item_name = $firstSheet->getCell('C' . $row)->getValue();

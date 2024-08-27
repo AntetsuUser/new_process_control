@@ -14,6 +14,12 @@
 @endsection
 
 @section('content')
+<script>
+    window.history.pushState(null, "", window.location.href);       
+    window.onpopstate = function() {
+        window.history.pushState(null, "", window.location.href);
+    };
+</script>
 <div class="browser_back_area">
     <form action="{{ route('longinfo.view_post') }}" method="POST">
         @csrf
@@ -144,8 +150,6 @@
     $(document).ready(function() {
         $('.page_break').last().css('page-break-after', 'avoid');
     });
-    
-
 </script>
 
 

@@ -154,6 +154,9 @@ class LongInfoService
                     $process_count = $this->array_count($item_process,$process_count);
                     $final_process =  $this->process_join($data['join_flag'],$item_process,$item_name);
                     $table_check = $this->_longinfoRepository->table_check($parent_name);
+                    //どこの工程なのかを判別する
+                
+                    //工程の番号を取得すればいいのでは？
                     if($table_check)
                     {
                         $item_arr[$parent_name][] = $final_process;
@@ -162,9 +165,10 @@ class LongInfoService
                 }
             }
         }
+        // dd($item_arr);
         // 配列の工程の順番を並び替え
         foreach ($item_arr as $sort_key => $sort_value) {
-            if (strpos($sort_value[0],'103') !== false) {
+            if (!empty($sort_value) && strpos($sort_value[0],'103') !== false) {
                 $item_arr[$sort_key] = array_reverse($sort_value);
             }
         }
@@ -206,26 +210,74 @@ class LongInfoService
         }
         //在庫を取得してくる
         foreach ($item_sorted_arr as $item_key => $item_value) {
-            $item_stock =  $this->_longinfoRepository->get_stock($item_key);
-            // 不要キーの削除
-            unset($item_stock["id"]);
-            unset($item_stock["processing_item"]);
-            if (strpos($item_sorted_arr[$item_key][0],'102') !== false and strpos($item_sorted_arr[$item_key][0],'/') !== false ) {
-                unset($item_stock["process1_stock"]);
-            }else if(strpos($item_sorted_arr[$item_key][0],'103') !== false and strpos($item_sorted_arr[$item_key][0],'/') !== false)
+            $count = 0;
+            if(is_array($item_value) && count($item_value) === 1)
             {
-                unset($item_stock["process3_stock"]);
+                $where_process = $item_value[0];
+                $process_stock = "process1_stock";
+                if(strpos($where_process,'102')!== false)
+                {
+                    if(strpos($item_sorted_arr[$item_key][0],'/') !== false or strpos($where_process,'MC')!== false)
+                    {
+                        $process_stock = "process2_stock";
+                        $item_arr_count = 2;
+                    }
+                    else {
+                        $process_stock = "process1_stock";
+                        $item_arr_count = 1;
+                    }
+                }else if(strpos($where_process,'103')!== false)
+                {
+                    if(strpos($item_sorted_arr[$item_key][0],'/') !== false or strpos($where_process,'MC')!== false)
+                    {
+                        $process_stock = "process4_stock";
+                        $item_arr_count = 4;
+                    }
+                    else {
+                        $process_stock = "process3_stock";
+                        $item_arr_count = 3;
+                    }
+                }
+
+                //単体の工程の在庫を取得してくる
+                $item_stock =  $this->_longinfoRepository->single_get_stock($item_key,$process_stock);
+
             }
-            if(isset($item_sorted_arr[$item_key][1]))
-            {
-                if (strpos($item_sorted_arr[$item_key][1],'103') !== false and strpos($item_sorted_arr[$item_key][0],'/') !== false ) {
+            else {
+                $item_stock =  $this->_longinfoRepository->get_stock($item_key);
+                // dd($item_stock);
+                // 不要キーの削除
+                unset($item_stock["id"]);
+                unset($item_stock["processing_item"]);
+                if (strpos($item_sorted_arr[$item_key][0],'102') !== false and strpos($item_sorted_arr[$item_key][0],'/') !== false ) {
+                    unset($item_stock["process1_stock"]);
+                }else if(strpos($item_sorted_arr[$item_key][0],'103') !== false and strpos($item_sorted_arr[$item_key][0],'/') !== false)
+                {
                     unset($item_stock["process3_stock"]);
                 }
+                if(isset($item_sorted_arr[$item_key][1]))
+                {
+                    if (strpos($item_sorted_arr[$item_key][1],'103') !== false and strpos($item_sorted_arr[$item_key][0],'/') !== false ) {
+                        unset($item_stock["process3_stock"]);
+                    }
+                }
+                // dump($item_stock);
+                // 工程数を変数に格納
+                $item_arr_count = count($item_sorted_arr[$item_key]);
+                // dump($item_arr_count);
+                if (strpos($item_sorted_arr[$item_key][0],'102') !== false and strpos($item_sorted_arr[$item_key][0],'/') !== false ) {
+                    $item_arr_count = 2;
+                }else if(strpos($item_sorted_arr[$item_key][0],'103') !== false and strpos($item_sorted_arr[$item_key][0],'/') !== false)
+                {
+                    $item_arr_count = 4;
+                }
+                if(isset($item_sorted_arr[$item_key][1]))
+                {
+                    if (strpos($item_sorted_arr[$item_key][1],'103') !== false and strpos($item_sorted_arr[$item_key][0],'/') !== false ) {
+                        $item_arr_count = 4;
+                    }
+                }
             }
-
-            $count = 0;
-            // 工程数を変数に格納
-            $item_arr_count = count($item_sorted_arr[$item_key]);
             // DBのデータを使いやすいように配列に格納
             // $countが2までは素材在庫を配列に、それ以降は各工程の完成品在庫を配列に格納
             foreach ($item_stock as $index => $stock_value) {
@@ -241,7 +293,6 @@ class LongInfoService
         // コントローラーに渡すための配列を作成
         $send_arr["item_sorted_arr"] = $item_sorted_arr;
         $send_arr["stock_arr"] = $stock_arr;
-
 
         return $send_arr;
     }

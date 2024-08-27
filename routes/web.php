@@ -34,6 +34,12 @@ route::prefix('/load_prediction')->controller(LoadPredictionController::class)->
 {
     //負荷予測製造課選択画面
     route::get('/department_select','department_select')->name('load_prediction.department_select');
+    //負荷予測製造課ごとの値処理
+    route::post('/process','process')->name('load_prediction.process');
+    //負荷予測設備ごとの負荷率画面
+    route::get('/load_prediction_machine','load_prediction_machine')->name('load_prediction.load_prediction_machine');
+
+
 });
 
 //長期情報関連

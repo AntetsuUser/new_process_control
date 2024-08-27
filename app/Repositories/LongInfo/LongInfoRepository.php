@@ -101,6 +101,16 @@ class LongInfoRepository
             return [];
         }
     }
+    public function single_get_stock($item_name,$process)
+    {
+        $stock = Stock::select('material_stock_1','material_stock_2',$process)->where('processing_item', $item_name)->first();
+
+        if ($stock) {
+            return $stock->toArray();
+        } else {
+            return [];
+        }
+    }
 
 
     //longinfoDBの$item_nameテーブルから数量を取得する

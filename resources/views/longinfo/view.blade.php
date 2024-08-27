@@ -168,6 +168,14 @@
     var numbers = @json($numbers);
     var factory = @json($factory);
     var department = @json($department);
+
+    ///キャッシュが残っているかをJSで判定しリロード
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+            // ここにキャッシュ有効時の処理を書く
+            window.location.reload();
+        }
+    });
 </script>
 
 @if(config('app.env') === 'production')
