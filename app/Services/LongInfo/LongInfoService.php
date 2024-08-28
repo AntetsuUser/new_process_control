@@ -4,6 +4,8 @@ namespace App\Services\LongInfo;
     
 use App\Repositories\LongInfo\LongInfoRepository;
 use DateTime;
+
+use Carbon\Carbon;
     
 class LongInfoService 
 {
@@ -486,27 +488,41 @@ class LongInfoService
         }
         return $lot_arr;
     }
-    public function print_date_create($data_arr,$arr_count)
+    public function print_date_create($data_arr,$arr_count,$department,$ip)
     {
-        //連想配列を作成する
         $print_arr = [];
+        //////////////////////
+        //固有IDを作成
+        //////////////////////
+        $now = Carbon::now(); // 現在の日時を取得
+        $now_id = $now->format('ymdHi'); // 2408281430 のようにフォーマット
+
+        //  ipの下4桁を取得
+        // IPアドレスをドットで分割
+        $parts = explode('.', $ip);
+        // 3番目の部分を取得
+        $part3 = $parts[2];
+        // 4番目の部分を取得し、3桁に満たない場合は先頭に0を追加
+        $part4 = str_pad($parts[3], 3, '0', STR_PAD_LEFT);
+        // 結果を結合
+        $ip4_digits = $part3 .$part4;
+
+        //製造課ごとのprint回数を取ってくる
+        $print_count =$this->_longinfoRepository->get_print_count($department);
+        // 4番目の部分を取得し、3桁に満たない場合は先頭に0を追加
+        $print_count = str_pad($print_count, 4, '0', STR_PAD_LEFT);
         //characteristic_idを作成して配列に入れる
-        $digits = sprintf('%02d', $arr_count +1);
-
-         // 現在のマイクロ秒を取得
-        $microtime = microtime(true);
-
-        // 秒とマイクロ秒を分ける
-        $seconds = floor($microtime);
-        $microseconds = ($microtime - $seconds) * 1000000;
-
-        // マイクロ秒を2桁に整形（コンマ秒に変換）
-        $micro = sprintf('%02d', (int)($microseconds / 10000)); // 10000で割ってコンマ秒に変換
-
-        $characteristic_id =  date("ymdHis"). $micro . $digits;
-        $print_arr['characteristic_id'] = $characteristic_id;
-
-
+        $print_arr['characteristic_id'] = $now_id.$print_count.$ip4_digits;
+        
+        //今まで加工した数を取得する
+        $info_process = "process".$data_arr[8];
+        //品番と工程で取得
+        $processing = $this->_longinfoRepository->processing_all($info_process,$data_arr[0],$data_arr[2]);
+        // 文字列を整数に変換
+        $long_term_all = intval($data_arr[5]);
+        $processing_quantity = intval($data_arr[4]);
+        $processing = intval($processing);
+        $processing_all = $long_term_all - $processing  + $processing_quantity;
         //親品番から子品番を取得してくる
         $item = $this->_longinfoRepository->child_number_get($data_arr[0],704);
         $child_part_number1 = $item->child_part_number1;
@@ -532,7 +548,7 @@ class LongInfoService
                 
         //長期作成日を取得して配列に入れる
         $create_infodate = $this->_longinfoRepository->get_create_infodate();
-        $worker_name = $this->_longinfoRepository->worker_name_get($data_arr[8]);
+        $worker_name = $this->_longinfoRepository->worker_name_get($data_arr[7]);
 
         $print_arr['item_name'] = $item_name;
         $print_arr['parent_name'] = $data_arr[0];
@@ -543,12 +559,12 @@ class LongInfoService
         $print_arr['start_date'] = $data_arr[3];
         //作業者人の名前にした方がいいかも
 
-        $print_arr['woker_id'] = $data_arr[8];
+        $print_arr['woker_id'] = $data_arr[7];
         $print_arr['process'] = $data_arr[1];
-        $print_arr['workcenter'] = $data_arr[7];
+        $print_arr['workcenter'] = $data_arr[6];
         $print_arr['capture_date'] = $create_infodate;
-        $print_arr['processing_all'] = $data_arr[5];
-        $print_arr['long_term_all'] = $data_arr[6];
+        $print_arr['processing_all'] = $processing_all;
+        $print_arr['long_term_all'] = $data_arr[5];
         $print_arr['input_complete_flag'] = "true";
         //print_arrをDBに登録する
         $this->_longinfoRepository->printing_history_insert($print_arr);

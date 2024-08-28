@@ -128,21 +128,23 @@ class LongInfoController extends Controller
         $numbers = $request->numbers;
         $factory = $request->factory;
         $department = $request->department;
+        //IPアドレス
+        $ip = $request-> ip();
 
         // POSTデータを取得
         $post_data = $request->data;
 
         // 作業者IDを抜き出す
         $arr = explode(',', $post_data[0]);
-        $workers = $arr[8];
+        $workers = $arr[7];
         $print_arr = [];
-
+        
         foreach ($post_data as $arr_count => $value) 
         {
             // 指示書に必要な情報を配列に入れて処理
             $Array = explode(',', $value);
-            $process_number = $Array[9];
-            $data_arr = $this->_longinfoService->print_date_create($Array, $arr_count);
+            $process_number = $Array[8];
+            $data_arr = $this->_longinfoService->print_date_create($Array, $arr_count,$department,$ip);
             $this->_longinfoService->long_info_quantity($data_arr, $process_number);
             $print_arr[] = $data_arr;
         }

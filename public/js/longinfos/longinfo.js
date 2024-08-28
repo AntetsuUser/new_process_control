@@ -320,6 +320,7 @@ $(document).on('click', 'table tbody tr td:nth-child(n+4)', function()
             $("#info_num").text(cellText);
             $("#lot_number").text(maxlot);
         }
+
         selection_elements.closest('tr').find('td:first-child p').text(maxlot);
         //モーダルを表示する
         modal.css('display', 'block');
@@ -607,7 +608,10 @@ $('#print').on('click',function(){
 
             // 配列に格納
             //[品目コード、工程、納期、着手日、加工数、今まで何個加工したか、長期数量、設備番号、作業者id,工程番号]
-            select_arr.push([item_code,process,delivery_date,formattedDate,processing_quantity,processing_all,long_term_all,lineNumbers,workersid,process_number]);
+            // select_arr.push([item_code,process,delivery_date,formattedDate,processing_quantity,processing_all,long_term_all,lineNumbers,workersid,process_number]);
+            //[品目コード、工程、納期、着手日、加工数、今まで何個加工したか、長期数量、設備番号、作業者id,工程番号]
+            select_arr.push([item_code,process,delivery_date,formattedDate,processing_quantity,long_term_all,lineNumbers,workersid,process_number]);
+        
         }
 
     });

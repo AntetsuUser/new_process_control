@@ -20,6 +20,7 @@ class Department extends Model
         // DBに書き込まれるカラムを指定
         'id',
         'name',
-        'factory_id'
+        'factory_id',
+        'print_count'
     ];
 }

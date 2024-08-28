@@ -194,8 +194,9 @@ canvas
 @media print 
 {
     @page {
-        size: auto !important;
-        /* size: landscape !important; */
+        /* size: auto !important; */
+        /* @page { size:landscape; } */
+        size: landscape !important;
         /* margin: -10px; */
         /* margin: 1cm; または適切なマージン値 */
     }

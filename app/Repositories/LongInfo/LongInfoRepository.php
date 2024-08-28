@@ -20,6 +20,8 @@ use App\Models\Long_term_date;
 
 use App\Models\PrintHistory;
 
+use App\Models\Department;
+
 
 // データベース作成に使う
 use Illuminate\Support\Facades\Schema;
@@ -297,6 +299,41 @@ class LongInfoRepository
     {
         return PrintHistory::where('input_complete_flag',"true")->select('parent_name','delivery_date','process','capture_date','processing_quantity')
                         ->get()->toArray();
+    }
+    //製造課ごとのprint回数を取ってくる
+    public function get_print_count($department)
+    {
+        //印刷回数を取得
+        $print_count = Department::where('id', $department)->select('print_count')->first()->print_count;
+        Department::where('id', $department)->increment('print_count');
+        
+        return  $print_count;
+
+    }
+
+    public function processing_all($info_process,$item_name,$day)
+    {
+        if (Schema::connection('second_mysql')->hasTable($item_name)) 
+        {
+            return DB::connection('second_mysql')->transaction(function () use ($item_name, $info_process, $day) {
+                // Lock the row for update
+                $record = DB::connection('second_mysql')
+                    ->table($item_name)
+                    ->where('day', $day)
+                    ->whereRaw("`{$info_process}` IS NOT NULL")
+                    ->lockForUpdate()
+                    ->first();
+                
+                if ($record) {
+                    $info_process_value = $record->$info_process;
+
+                    // dd($info_process_value);
+                    return $record->$info_process;
+                    
+                }
+
+            });
+        }
     }
 
     
