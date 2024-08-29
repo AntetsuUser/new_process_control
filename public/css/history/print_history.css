@@ -1,6 +1,7 @@
+
 .print_title
 {
-  width: 100%;
+    width: 100%;
     font-size: 30px;
     text-align: center;
 }
@@ -22,7 +23,10 @@
 }
 .table_area
 {
-    overflow:scroll;
+    overflow: scroll;
+    width: 90%;
+    margin: 0 auto;
+    height: 450px;
 }
 table
 {
@@ -89,6 +93,7 @@ th,td
 .filter_th
 {
   position: relative;
+  text-align: right;
 }
 .filter_from_none
 {
@@ -118,6 +123,16 @@ th,td
   justify-content: space-between;
   width: 50%;
 }
+.filter_box {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
 
 /* 0313 石原 追加　入力、未入力ラジオボタンcss */
 .input_seitch input {
@@ -154,4 +169,13 @@ th,td
 .input_seitch input[type="radio"]:checked+.switch-off {
     background-color: #86A2B8;
     color: #fff;
+}
+/* filterbutton */
+.filter_button
+{
+    background-color: white;
+    padding: 5px;
+    border-radius: 3px;
+    cursor: pointer;
+    
 }

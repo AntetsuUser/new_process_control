@@ -26,7 +26,8 @@
         </div>
         <div class="table_area">
             <table id="print_history_table">
-                <tr class="th_fixed">
+                <thead>
+                    <tr class="th_fixed">
                     <th></th>
                     <th class="filter_th" filter_btn>固有ID</th>
                     <th class="filter_th" filter_btn>品目名称</th>
@@ -40,6 +41,7 @@
                     <th class="filter_th" filter_btn>工程</th>
                     <th class="filter_th" filter_btn>W/C</th>
                 </tr>
+                </thead>
                 @foreach($print_history as $data2 )
                 @if ($data2["input_complete_flag"] == "false" )
                     <tr class="entered_row "  data-flag="true">
@@ -127,4 +129,12 @@
 
 </script>
 
+@if(config('app.env') === 'production')
+    <script src="{{secure_asset('js/filter.js')}}" ></script>
+
+@else
+    <script src="{{asset('js/filter.js')}}"></script>
+
+    
+@endif
 @endsection
