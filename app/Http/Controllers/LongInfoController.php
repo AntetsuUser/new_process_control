@@ -33,7 +33,6 @@ class LongInfoController extends Controller
     public function select()
     {
         $factory = $this->_longinfoService->factory_get();
-
         return view('longinfo.select', compact('factory'));
     }
 
@@ -62,7 +61,11 @@ class LongInfoController extends Controller
         //設備番号で加工可能な品番を取得してくる
         // dd($line_numbers);
         $send_arr = $this->_longinfoService->longinfo_date($line_numbers);
-
+        if ($send_arr == false) {
+            $factory = $this->_longinfoService->factory_get();
+            $message = '選択したW/Cには登録されている品番がありません。選択内容をご確認ください。';
+            return view('longinfo.select', compact('factory', 'message'));
+        }
         $info_process_arr = $send_arr["item_sorted_arr"];
 
         $stock_arr = $send_arr["stock_arr"];

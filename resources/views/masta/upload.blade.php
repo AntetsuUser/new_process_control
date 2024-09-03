@@ -2,6 +2,7 @@
 
 @section('css')
 
+<meta name="csrf-token" content="{{ csrf_token() }}">
 @if(config('app.env') === 'production')
     {{-- <link href="{{ secure_asset('/css/reset.css') }}" rel="stylesheet"> --}}
     <link href="{{ secure_asset('/css/masta/upload.css') }}" rel="stylesheet">
@@ -152,9 +153,8 @@
                             <?php $count = 0; ?>
                             @foreach ($shipment_log as $value)
                             <tr>
-
                                 <td>{{ $value["category"] }}</td>
-                                <td>{{ $value["file_name"] }}</td>
+                                <td>{{ $value["file_name"] }}<button type="button" class="send-post btn btn-link" onclick="submitForm({{ $value['id'] }})">詳細</button></td>
                                 <td>{{ $value["start_date"] }}</td>
                                 <td>{{ $value["end_date"] }}</td>
                                 <td>{{ $value["upload_day"] }}</td>
@@ -262,6 +262,32 @@
         </div>
     </div>
 </div>
+<script>
+    function submitForm(id) {
+        // フォームを作成
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route('masta.application_history') }}';
+
+        // CSRFトークンを追加
+        var tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = '_token';
+        tokenInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(tokenInput);
+
+        // shipment_log_idを追加
+        var idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'shipment_log_id';
+        idInput.value = id;
+        form.appendChild(idInput);
+
+        // フォームをドキュメントに追加して送信
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
 @if(config('app.env') === 'production')
     <script src=" {{secure_asset('js/masta/calendar.js')}}"></script>
 @else

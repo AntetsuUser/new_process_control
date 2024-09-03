@@ -138,7 +138,8 @@ route::prefix('/masta')->controller(MastaController::class)->group(function()
     route::get('/clearing_application','clearing_application')->name('masta.clearing_application');
     //出荷データ反映
     route::get('/shipment_application','shipment_application')->name('masta.shipment_application');
-    
+    //出荷反映データ履歴処理
+    route::post('/application_history','application_history')->name('masta.application_history');
 });
 
 //履歴関連

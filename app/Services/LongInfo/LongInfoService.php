@@ -177,7 +177,10 @@ class LongInfoService
         foreach ($item_arr as $sort_key => $sort_value) {
             $item_arr[$sort_key] = array_unique($item_arr[$sort_key]);
         }
-        // dd($day_arr);
+        if (!isset($day_arr) || empty($day_arr)) {
+            // $day_arrが存在しない、または空の配列の場合の処理
+            return false;
+        }
         // 各品番の日付を格納した配列をソート
         uasort($day_arr, function($a, $b) {
             // Define the keyword for "遅延"

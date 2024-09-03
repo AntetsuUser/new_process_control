@@ -23,5 +23,7 @@ class ShippingInfo extends Model
         'delivery_date',
         'ordering_quantity',
         'note',
+        'application_flag',
+        'history_id',
     ];
 }

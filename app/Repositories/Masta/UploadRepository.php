@@ -79,7 +79,7 @@ class UploadRepository
      //アップロードの履歴を残す
     public function shipping_upload_log($filename,$category,$detail,$upload_day,$start_date,$end_date)
     {
-        Processing_history::create([
+        $result = Processing_history::create([
         'file_name' => $filename,
         'category' => $category,
         'detail' => $detail,
@@ -88,6 +88,8 @@ class UploadRepository
         'end_date' => $end_date,
         ]);
         
+        return $result->id;
+
     }
 
     //temp_longinfoに品番ごとのテーブルを作成する
@@ -246,6 +248,7 @@ class UploadRepository
     //処理対象をDBに保存する
     public function insert_shipment_data($data)
     {
+        // dd($data);
         DB::beginTransaction();
         try {
             ShippingInfo::create($data);
@@ -258,7 +261,7 @@ class UploadRepository
     //処理対象の出荷情報を取得する
     public function get_shipping_data()
     {
-        return ShippingInfo::all()->toArray();
+        return ShippingInfo::where('application_flag', "false")->get()->toArray();
     }
 
     // 処理対象の出荷情報を在庫に反映させる
@@ -294,8 +297,21 @@ class UploadRepository
     //データの削除
     public function shipment_info_delete($id)
     {
-        ShippingInfo::find($id)->delete();
+        $shippingInfo = ShippingInfo::find($id);
+
+        if ($shippingInfo) {
+            $shippingInfo->application_flag = "true";
+            $shippingInfo->save();
+        }
     }
+
+    public function get_history($history_id)
+    {
+        $history_arr = ShippingInfo::where('history_id', $history_id)
+                            ->where('application_flag', "true")
+                            ->get()->toArray();
+        return $history_arr ;
+    }   
 
 
 }

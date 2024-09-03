@@ -540,7 +540,7 @@ class MastaController extends Controller
         //出荷明細のログを取得
         $shipment_log = $this->_uploadService->get_uplog_shipment();
         
-    
+        // dd($shipment_log );
         // `with` メソッドを使って追加のデータをビューに渡す
         return view('masta.upload', compact('longinfo_log','shipment_log'));
     }
@@ -551,11 +551,12 @@ class MastaController extends Controller
         $uploadfile = $request->file->path();
         $filename = $request->file('file');
         
-        //Excelファイルのデータをデータベースに登録する
-        $this->_uploadService->create_table($filename,$uploadfile);
-        $category = "長期情報";
         //アップロードされたファイルを履歴DBに入れる
         $this->_uploadService->upload_log($filename,$category);
+
+        //Excelファイルのデータをデータベースに登録する
+        $this->_uploadService->create_table($filename,$uploadfile,$id);
+        $category = "長期情報";
 
         return redirect()->route('masta.upload')->with([
             'tab' => $tab,
@@ -575,11 +576,11 @@ class MastaController extends Controller
         $start_date = $request->input('delivery_day');
         //終了日
         $end_date = $request->input('delivery_day_end');
-
+        // idを取得する
         //アップロードされたファイルを履歴DBに入れる
-        $this->_uploadService->shipping_upload_log($filename,$category,$start_date,$end_date);
+        $id = $this->_uploadService->shipping_upload_log($filename,$category,$start_date,$end_date);
         //Excelファイルのデータをデータベースに登録する
-        $this->_uploadService->shipping_data_upload($filename,$uploadfile,$start_date,$end_date);
+        $this->_uploadService->shipping_data_upload($filename,$uploadfile,$start_date,$end_date,$id);
 
         return redirect()->route('masta.upload')->with([
             'tab' => $tab,
@@ -592,6 +593,7 @@ class MastaController extends Controller
     {
         //出荷情報のDBから値を取得してくる
         $shipping_data = $this->_uploadService->get_shipping_data();
+        
         // dd($shipping_data);
         return view('masta.clearing_application',compact('shipping_data'));
     }
@@ -607,6 +609,7 @@ class MastaController extends Controller
             $id = $data["id"];
             $item_code = $data["item_code"];
             $ordering_quantity = $data["ordering_quantity"];
+            //削除してる
             $return = $this->_uploadService->shipment_info_application($id,$item_code,$ordering_quantity);
             dump($data["item_code"]);
             dump($data["ordering_quantity"]);
@@ -629,5 +632,13 @@ class MastaController extends Controller
             'message_shipment' => $message,
             'message_type' => $message_type  // メッセージの種類を指定（成功、エラーなど）
         ]);
+    }
+
+    public function application_history(Request $request)
+    {
+
+        $history_id = $request->shipment_log_id;
+        $history_arr = $this->_uploadService->get_history($history_id);
+        return view('masta.application_history', compact('history_arr'));
     }
 }

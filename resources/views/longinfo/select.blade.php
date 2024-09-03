@@ -19,9 +19,13 @@
 <div class="browser_back_area">
     <a href="{{ url('/') }}"><img class="back_btn" src="{{ asset('img/icon/back.png') }}" alt=""><span>戻る</span></a>
 </div>
-
 <div class="container">
     <div class="row justify-content-center">
+        @if(isset($message) && $message != '')
+            <div class="alert alert-danger" style="font-size: 18px;">
+                {{ $message }}
+            </div>
+        @endif
         <div class="main_contents">
             <div class="main_box">
                 <div class="sub_box">
@@ -52,7 +56,7 @@
                         </select>
                         <span style="font-size: 25px; vertical-align: middle;">ー</span>
                         <select name="numbers" id="numbers" class="input_color" >
-                            <option value="{{ old('numbers') ?? '' }}" disabled selected>{{ old('numbers') ?? '0' }}</option>
+                            <option value="{{ old('numbers') ?? '' }}" disabled selected>{{ old('numbers') ?? '' }}</option>
                         </select>
                         @error('line')
                             <div class="ms-3 text-danger">{{ $message }}</div>

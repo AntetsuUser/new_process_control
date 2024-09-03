@@ -305,12 +305,13 @@ class UploadService
         date_default_timezone_set('Asia/Tokyo'); // タイムゾーンを日本時間に設定
         $now = date("Y-m-d H:i:s"); // 現在の日付と時刻を取得（YYYY-MM-DD HH:MM:SS形式）
         $detail = "アップロード";
-        $this->_uploadRepository->shipping_upload_log($originalFilename,$category,$detail,$now,$start_date,$end_date);
+        $id = $this->_uploadRepository->shipping_upload_log($originalFilename,$category,$detail,$now,$start_date,$end_date);
+        return $id;
     }
 
 
     //出荷明細のExcelファイルの値を抜き出す
-    public function shipping_data_upload($filename,$uploadfile,$start_date,$end_date)
+    public function shipping_data_upload($filename,$uploadfile,$start_date,$end_date,$id)
     {
         $reader = new XlsxReader();
         $spreadsheet = $reader->load($uploadfile);
@@ -380,11 +381,12 @@ class UploadService
                     // in_arrayで値が存在するかを確認
                     if (in_array($item_code, $processingItems)) {
                         $shipment_data[] =  ['item_code' => $item_code, 'item_name' => $item_name,'delivery_date' => $formattedDate, 
-                                    'ordering_quantity' => $ordering_quantity, 'note' => $note];
+                                    'ordering_quantity' => $ordering_quantity, 'note' => $note, 'application_flag' => 'false' ,'history_id' => $id];
                     } 
                 }
             }
         }
+        // dd($shipment_data);
         if (!empty($shipment_data)) 
         {
             foreach ($shipment_data as $data) 
@@ -437,4 +439,10 @@ class UploadService
         }
         return false;
     }
+    //反映した履歴を取得する
+    public function get_history($history_id)
+    {
+        $history_arr = $this->_uploadRepository->get_history($history_id);
+        return $history_arr;
+    }   
 }

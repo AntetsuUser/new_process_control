@@ -29,7 +29,7 @@
                 <thead>
                     <tr class="th_fixed">
                     <th></th>
-                    <th class="filter_th" filter_btn>固有ID</th>
+                    <th class="filter_th" style="width: 200px" filter_btn>固有ID</th>
                     <th class="filter_th" filter_btn>品目名称</th>
                     <th class="filter_th" filter_btn>品目コード</th>
                     <th class="filter_th" filter_btn>子品番1</th>
