@@ -528,39 +528,6 @@ $('#print').on('click',function(){
                     }
                 }
             }
-            //加工数-----------------------------------------
-            let cellText  = $(this).html();
-            let processing_quantity = cellText.match(/\((.+)\)/)[1]
-            processing_quantity = parseInt(processing_quantity)
-            //長期全数--------------------------------------------
-            let  long_term_all;
-            for (let index = tr_index; index > 0; index--) {
-                let element = table_row.eq(index).find('td').eq(td_index);
-
-                // elementがjQueryオブジェクトであることを確認
-                if (element.length) {
-                    // クラスをチェック
-                    if (element.hasClass('info_count')) {
-                        long_term_all = element.text();
-                        break;
-                    }
-                }
-            }
-
-
-            // 加工した数--------------------------------------------
-            let count = cellText.substring(0, cellText.indexOf("("))
-            count = count.replace("残", "");
-            let processing_all = long_term_all - count + processing_quantity
-            //納期--------------------------------------------
-            //選択されたセルの納期を取得
-            if(table_th_row.eq(td_index).text() == "遅延")
-            {
-                delivery_date = "遅延"
-            }else{
-                delivery_date = table_th_row.eq(td_index).attr('id');
-            }
-
             //工程---------------------------------------------
             //選択されたセルの工程を取得
             let process = table_row.eq(tr_index).find('td').eq(1).text()
@@ -581,28 +548,72 @@ $('#print').on('click',function(){
 
             //工程番号---------------------------------------------
             let process_number;
+            let for_count = 6;
             switch (true) {
                 case process.toString().includes('102') && process.toString().includes('MC'):
                     process_number = 2;
+                    for_count = 2;
                     break;
                 case process.toString().includes('102'):
                     process_number = 1;
+                    for_count = 1;
                     break;
                 case process.toString().includes('103') && process.toString().includes('MC'):
                     process_number = 4;
+                    for_count = 4;
                     break;
                 case process.toString().includes('103'):
                     process_number = 3;
+                    for_count = 3;
                     break;
                 case process.toString().includes('組立'):
                     process_number = 5;
+                    for_count = 5;
                     break;
                 case process.toString().includes('704'):
                     process_number = 6;
+                    for_count = 6;
                     break;
                 default:
                     process_number = 0; // エラー処理など、デフォルトの場合の設定
                     break;
+            }
+
+
+
+        
+            //加工数-----------------------------------------
+            let cellText  = $(this).html();
+            let processing_quantity = cellText.match(/\((.+)\)/)[1]
+            processing_quantity = parseInt(processing_quantity)
+            //長期全数--------------------------------------------
+            let long_term_all = 0; // デフォルト値を設定
+            for (let index = tr_index; index > 0 && index > tr_index - for_count -1; index--) {
+                let element = table_row.eq(index).find('td').eq(td_index);
+                console.log(element);
+                // elementがjQueryオブジェクトであることを確認
+                if (element.length) {
+                    // クラスをチェック
+                    if (element.hasClass('info_count')) {
+                        long_term_all = element.text();
+                        break;
+                    }
+                }
+            }
+
+
+
+            // 加工した数--------------------------------------------
+            let count = cellText.substring(0, cellText.indexOf("("))
+            count = count.replace("残", "");
+            let processing_all = long_term_all - count + processing_quantity
+            //納期--------------------------------------------
+            //選択されたセルの納期を取得
+            if(table_th_row.eq(td_index).text() == "遅延")
+            {
+                delivery_date = "遅延"
+            }else{
+                delivery_date = table_th_row.eq(td_index).attr('id');
             }
 
 

@@ -30,7 +30,7 @@
             <label class="tab_item" for="shipment">出荷情報アップロード</label>
             <input id="material_ledger" type="radio" name="tab_item">
             <label class="tab_item" for="material_ledger">材料台帳</label>
-            <input id="adding_request" type="radio" name="tab_item">
+            <input id="adding_request" type="radio" name="tab_item" {{ $currentTab == 'adding_request' ? 'checked' : '' }}>
             <label class="tab_item" for="adding_request">追加依頼</label>
             <!-- 長期情報アップロード -->
             <div class="tab_content" id="all_content">
@@ -213,14 +213,22 @@
             <!-- 追加依頼 -->
             <div class="tab_content" id="adding_request_content">
                 <div class="tab_content_description">
-                    <form id="form_order" action="#" method="post" enctype="multipart/form-data">
+                    <form id="form_order" action="{{ route('masta.adding_request') }}" method="post" enctype="multipart/form-data">
                         @csrf
+                        @if (session('message_adding'))
+                            <div class="alert alert-{{ session('message_type') }}">
+                                {{ session('message_adding') }}
+                            </div>
+                        @endif
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-3">
                                     <p class="contents_name">品目</p>
                                     <select name="item" id="item" class="lavel item_select" required>
                                         <option value="" disabled selected>--選択してください--</option>
+                                        @foreach ($parent_items as $items)
+                                            <option value="{{ $items }}">{{ $items }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-3">
@@ -229,7 +237,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="contents_name">数量</div>
-                                    <input type="number" name="quantity" class="quantity" required>
+                                    <input type="number" name="quantity" class="quantity" min="0" required>
                                 </div>
                                 <div class="col-md-3 btn_class">
                                     <button type="submit" class="add_btn form_btn">追加</button>
@@ -239,6 +247,7 @@
                     </form>
                     <table class="contents_margin">
                         <thead>
+                            {{-- up_log --}}
                             <tr>
                                 <th>追加日時</th>
                                 <th>品目</th>
@@ -247,7 +256,17 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @for ($i=0; $i < 10; $i++) 
+                            <?php $count = 0; ?>
+                            @foreach ($up_log as $value)
+                            <tr>
+                                <td>{{ \Carbon\Carbon::parse($value["created_at"])->setTimezone('Asia/Tokyo')->format('Y-m-d H:i:s') }}</td>
+                                <td>{{ $value["item_name"] }}</td>
+                                <td>{{ $value["request_date"] }}</td>
+                                <td>{{ $value["quantity"] }}</td>
+                                <?php $count = $count + 1; ?>
+                            </tr>
+                            @endforeach
+                            @if ($count < 10) @for ($i=$count; $i < 10; $i++)
                             <tr>
                                 <td>　</td>
                                 <td>　</td>
@@ -255,6 +274,7 @@
                                 <td>　</td>
                             </tr>
                             @endfor
+                            @endif
                         </tbody>
                     </table>
                 </div>

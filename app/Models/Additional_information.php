@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Department extends Model
+class Additional_information extends Model
 {
     use HasFactory;
 
@@ -13,15 +13,14 @@ class Department extends Model
     // protected -> このモデルを継承したもののみ扱える
 
     // DBとの紐付けを明示的に
-    protected $table = 'department';
+    protected $table = 'additional_information';
 
     // createを指定
     protected $fillable = [
         // DBに書き込まれるカラムを指定
         'id',
-        'name',
-        'factory_id',
-        'print_count',
-        'last_run_month',
+        'item_name',
+        'request_date',
+        'quantity',
     ];
 }

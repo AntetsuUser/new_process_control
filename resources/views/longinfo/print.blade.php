@@ -150,6 +150,12 @@
     $(document).ready(function() {
         $('.page_break').last().css('page-break-after', 'avoid');
     });
+
+    // 現在のページに戻れないようにする
+    history.pushState(null, null, location.href);
+    window.addEventListener('popstate', function (event) {
+        history.pushState(null, null, location.href);
+    });
 </script>
 
 

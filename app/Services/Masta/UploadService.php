@@ -14,7 +14,7 @@ use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 class UploadService 
 {
     // リポジトリクラスとの紐付け
-    protected $uploadepository;
+    protected $_uploadRepository;
 
     // phpのコンストラクタ
     public function __construct(UploadRepository $uploadRepository)
@@ -38,6 +38,15 @@ class UploadService
             $uplogShipment = array_slice($uplogShipment, 0, 10);
         }
         return $uplogShipment;
+    }
+    public function get_Additional_information()
+    {
+        $uplog = $this->_uploadRepository->get_Additional_information();
+         if (count($uplog) > 10) {
+            $uplog = array_slice($uplog, 0, 10);
+        }
+        // dd($uplog);
+        return $uplog;
     }
 
     //長期情報Excelファイルからデータベースのテーブルを作成する
@@ -444,5 +453,61 @@ class UploadService
     {
         $history_arr = $this->_uploadRepository->get_history($history_id);
         return $history_arr;
+    }   
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //追加依頼
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //親品番を取得する
+    public function get_parent_items()
+    {
+        $items = $this->_uploadRepository->get_parent_items();
+
+        // テーブル名を配列に格納
+        $tableNames = [];
+        foreach ($items as $table) {
+            $tableNames[] = $table->Tables_in_longinfos;
+        }
+        return $tableNames;
+    }
+    //品番で数量を計算する
+    public function adding_order_process($item,$delivery_date,$quantity)
+    {
+        //品番に在庫があるか調べる
+        $stork =  $this->_uploadRepository->stock_confirmation($item,$quantity);
+        // dd($stork);s
+        //在庫が依頼の数量より多い場合
+        if ($stork >= $quantity) 
+        {
+            // 在庫が依頼の数量より多い場合の処理
+            //依頼数量分在庫から消す
+            $result =  $this->_uploadRepository->erase_quantity_minutes($item,$quantity);
+            $this->_uploadRepository->adding_order_history($item,$delivery_date,$quantity);
+            return  $result;
+
+        }else{
+            // 在庫が依頼の数量よりすくない場合の処理
+            //今登録されてる長期の日を取得
+            $long_term_date = $this->_uploadRepository->get_long_term_date();
+            //$long_term_dateの配列の中に$delivery_dateがあるか
+            if (in_array($delivery_date, $long_term_date)) {
+                // $delivery_date が $long_term_date 配列に存在する場合の処理
+                // 品番の日付の所に数量を増やす
+                $this->_uploadRepository->quantity_addition($item,$delivery_date,$quantity);
+
+            } else {
+                // $delivery_date が $long_term_date 配列に存在しない場合の処理
+                // 遅延に増やす
+                $delivery_date = "遅延";
+                $this->_uploadRepository->quantity_addition($item,$delivery_date,$quantity);
+            }
+
+            // dd($long_term_date,$delivery_date);
+        }
+        //追加依頼履歴に入れる
+        $this->_uploadRepository->adding_order_history($item,$delivery_date,$quantity);
+
+        return true;
+        // $this->_uploadRepository->adding_order_process($item,$delivery_date,$quantity)
     }   
 }

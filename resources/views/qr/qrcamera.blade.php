@@ -43,7 +43,7 @@
         <div class="modal-content">
             <p class="modal-title">IDを入力してください</p>
             <p id="id-not-found" class="not-found-none">※IDが見つかりませんでした</p>
-            <input type="text" id="help-id-input" maxlength="16" oninput="value = value.replace(/[^0-9]+/i,'');">
+            <input type="text" id="help-id-input" maxlength="18" oninput="value = value.replace(/[^0-9]+/i,'');">
             <table class="help_btn_table">
                 <tr class="help-btn_tr">
                     <td class="help-btn_td"><a id="help-js-link" class="blue">開く</a></td>

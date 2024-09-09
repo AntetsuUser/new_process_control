@@ -525,7 +525,13 @@ class LongInfoService
         $long_term_all = intval($data_arr[5]);
         $processing_quantity = intval($data_arr[4]);
         $processing = intval($processing);
-        $processing_all = $long_term_all - $processing  + $processing_quantity;
+        if($long_term_all == 0)
+        {
+            $processing_all = 0;
+        }
+        else {
+            $processing_all = $long_term_all - $processing  + $processing_quantity;
+        }
         //親品番から子品番を取得してくる
         $item = $this->_longinfoRepository->child_number_get($data_arr[0],704);
         $child_part_number1 = $item->child_part_number1;

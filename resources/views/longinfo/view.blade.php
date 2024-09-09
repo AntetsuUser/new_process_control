@@ -168,14 +168,66 @@
     var numbers = @json($numbers);
     var factory = @json($factory);
     var department = @json($department);
+    var workers = @json($workers);
+    // 現在のページに戻れないようにする
+    history.pushState(null, null, location.href);
+    window.addEventListener('popstate', function (event) {
+        history.pushState(null, null, location.href);
+    });
 
-    ///キャッシュが残っているかをJSで判定しリロード
     window.addEventListener('pageshow', (event) => {
-        if (event.persisted) {
-            // ここにキャッシュ有効時の処理を書く
-            window.location.reload();
+    if (event.persisted) {
+        let form = $('<form>', {
+            action: '/longinfo/view_post',
+            method: 'post'
+        });
+
+        // CSRFトークンをフォームに追加
+        let csrfToken = $('meta[name="csrf-token"]').attr('content');
+        form.append($('<input>', {
+            type: 'hidden',
+            name: '_token',
+            value: csrfToken
+        }));
+
+        // 隠しフィールドをフォームに追加
+        form.append($('<input>', {
+            type: 'hidden',
+            name: 'line',
+            value: line
+        }));
+        form.append($('<input>', {
+            type: 'hidden',
+            name: 'numbers',
+            value: numbers
+        }));
+        form.append($('<input>', {
+            type: 'hidden',
+            name: 'factory',
+            value: factory
+        }));
+        form.append($('<input>', {
+            type: 'hidden',
+            name: 'department',
+            value: department
+        }));
+        form.append($('<input>', {
+            type: 'hidden',
+            name: 'workers',
+            value: workers
+        }));
+
+        // フォームをボディに追加して送信
+        form.appendTo('body').submit();
+
+        // フォーム送信後にリロード
+        // フォーム送信後にリロードが確実に行われるようにするために、リロードを少し遅らせる
+        setTimeout(() => {
+            // window.location.reload();
+        }, 1000); // 100ミリ秒の遅延を設定
         }
     });
+
 </script>
 
 @if(config('app.env') === 'production')

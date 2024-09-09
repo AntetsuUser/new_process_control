@@ -6,7 +6,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Services\LongInfo\LongInfoService;
-
+//Logを残すのに必要
+use Illuminate\Support\Facades\Log;
 //ポストリクエストの時の
 use App\Http\Requests\Longinfo\SelectRequest;
 
@@ -33,12 +34,14 @@ class LongInfoController extends Controller
     public function select()
     {
         $factory = $this->_longinfoService->factory_get();
+        Log::channel('process_log')->info('工場、製造課選択画面遷移');
         return view('longinfo.select', compact('factory'));
     }
 
     //長期情報表示
     public function view_post(Request $request)
     {
+
         //ip取得
         $ip =  $request-> ip();
         //印刷履歴から作業中のデータを取得してくる
@@ -57,9 +60,15 @@ class LongInfoController extends Controller
         $numbers = $request->numbers;
         $factory = $request->factory;
         $department = $request->department;
+        Log::channel('process_log')->info('工場表示,工場：'.$factory.'　製造課：'.$department.'　設備番号：'.$line_numbers);
 
         //設備番号で加工可能な品番を取得してくる
-        // dd($line_numbers);
+        if($line == "U-N" && $department == "8"){
+            $factory = $this->_longinfoService->factory_get();
+            $message = '選択された「7製造課」、「U-N」で表示できる品番がありません。選択内容をご確認ください。';
+            return view('longinfo.select', compact('factory', 'message'));
+        }
+
         $send_arr = $this->_longinfoService->longinfo_date($line_numbers);
         if ($send_arr == false) {
             $factory = $this->_longinfoService->factory_get();
@@ -72,7 +81,7 @@ class LongInfoController extends Controller
         //表示する配列をもらう
         // 日付データ取得
         $date_arr = $this->_longinfoService->date_get();    
-                //選択可能な工程を取得する
+        //選択可能な工程を取得する
         $selectable = $this->_longinfoService->selectable($line_numbers);
         $selectable_json = json_encode($selectable, JSON_PRETTY_PRINT);
         // 数量情報取得
@@ -98,8 +107,8 @@ class LongInfoController extends Controller
         $request->session()->put('numbers', $numbers);
         $request->session()->put('factory', $factory);
         $request->session()->put('department', $department);
-
-        // GETリクエストにリダイレクト
+        Log::channel('process_log')->info('処理終了　GETに値を渡す');
+        // GETリクエストにリダイレクト  
         return redirect()->route('longinfo.view');
     }
 
@@ -119,6 +128,7 @@ class LongInfoController extends Controller
         $numbers = $request->session()->get('numbers', '');
         $factory = $request->session()->get('factory', '');
         $department = $request->session()->get('department', '');
+        Log::channel('process_log')->info('値受け取り　viewを表示');
         // ビューにデータを渡す
         return view('longinfo.view', compact('info_process_arr', 'stock_arr', 'date_arr', 'quantity_arr',
                                             'selectable_json', 'lot_arr', 'line_numbers', 'workers', 'work_arr', 

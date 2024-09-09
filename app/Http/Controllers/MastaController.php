@@ -539,10 +539,13 @@ class MastaController extends Controller
         $longinfo_log = $this->_uploadService->get_uplog();
         //出荷明細のログを取得
         $shipment_log = $this->_uploadService->get_uplog_shipment();
-        
-        // dd($shipment_log );
+        //アップロードのログ
+        $up_log = $this->_uploadService->get_Additional_information();
+        //親品番取得
+        $parent_items = $this->_uploadService->get_parent_items();
+        // dd($parent_items);
         // `with` メソッドを使って追加のデータをビューに渡す
-        return view('masta.upload', compact('longinfo_log','shipment_log'));
+        return view('masta.upload', compact('longinfo_log','shipment_log','parent_items','up_log'));
     }
     //長期情報アップロード
     public function longinfo_upload(InfoUploadRequest $request)
@@ -550,13 +553,12 @@ class MastaController extends Controller
         $tab = "all";
         $uploadfile = $request->file->path();
         $filename = $request->file('file');
-        
+        $category = "長期情報";
         //アップロードされたファイルを履歴DBに入れる
         $this->_uploadService->upload_log($filename,$category);
 
         //Excelファイルのデータをデータベースに登録する
-        $this->_uploadService->create_table($filename,$uploadfile,$id);
-        $category = "長期情報";
+        $this->_uploadService->create_table($filename,$uploadfile);
 
         return redirect()->route('masta.upload')->with([
             'tab' => $tab,
@@ -641,4 +643,32 @@ class MastaController extends Controller
         $history_arr = $this->_uploadService->get_history($history_id);
         return view('masta.application_history', compact('history_arr'));
     }
+    ///////////////////////////////
+    //追加依頼
+    ///////////////////////////////
+    public function adding_request(Request $request)
+    {
+        $tab = "adding_request";
+        $item = $request->item;
+        $delivery_date = $request->delivery_date;
+        $quantity = $request->quantity;
+
+        //処理
+        $result = $this->_uploadService->adding_order_process($item,$delivery_date,$quantity);
+        if($result)
+        {
+            $message  = '反映されました';
+            $message_type = 'success';
+        }
+        else {
+            $message  = '反映されませんでした';
+            $message_type = 'warning';
+        }
+        return redirect()->route('masta.upload')->with([
+            'tab' => $tab,
+            'message_adding' => $message,
+            'message_type' => $message_type  // メッセージの種類を指定（成功、エラーなど）
+        ]);
+    }
 }
+

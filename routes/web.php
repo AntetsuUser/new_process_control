@@ -140,6 +140,8 @@ route::prefix('/masta')->controller(MastaController::class)->group(function()
     route::get('/shipment_application','shipment_application')->name('masta.shipment_application');
     //出荷反映データ履歴処理
     route::post('/application_history','application_history')->name('masta.application_history');
+    //追加依頼処理
+    route::post('/adding_request','adding_request')->name('masta.adding_request');
 });
 
 //履歴関連

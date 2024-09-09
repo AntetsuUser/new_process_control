@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 use App\Services\History\PrintHistoryService;
 use App\Services\History\ProcessedHistoryService;
+//Logを残すのに必要
+use Illuminate\Support\Facades\Log;
 
 class HistoryController extends Controller
 {
@@ -22,6 +24,7 @@ class HistoryController extends Controller
     public function print()
     {
         $print_history = $this->_printHistoyService->print_history_get();
+        Log::channel('process_log')->info('印刷画面表示');
         return view('history.print_history',compact('print_history'));
     }
 
@@ -29,6 +32,7 @@ class HistoryController extends Controller
     public function processing()
     {
         $processed_history = $this->_processedHistoryService->processed_history_get();  
+        Log::channel('process_log')->info('入力画面表示');
         return view('history.processing_history',compact('processed_history'));
     }
     public function reprint(Request $request)
@@ -37,6 +41,7 @@ class HistoryController extends Controller
 
         $print_history = $this->_printHistoyService->reprint($id);
         // dd($print_history);
+        Log::channel('process_log')->info('指示書再表示');
         return view('history.reprint',compact('print_history'));
     }
 }

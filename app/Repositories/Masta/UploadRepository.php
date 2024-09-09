@@ -21,7 +21,11 @@ use App\Models\Processing_history;
 
 use App\Models\Temp_long_term_date;
 
+use App\Models\Long_term_date;
+
 use App\Models\ShippingInfo;
+
+use App\Models\Additional_information;
 
 
 class UploadRepository
@@ -37,6 +41,11 @@ class UploadRepository
     {
         //最新のファイル情報から取得する
         return Processing_history::where('category', '出荷明細') ->orderBy('id', 'desc')->get()->toArray();
+    }
+    //
+    public function get_Additional_information()
+    {
+        return Additional_information::orderBy('id', 'desc')->get()->toArray();
     }
 
     //親品番から子品番の情報を取得する
@@ -91,6 +100,7 @@ class UploadRepository
         return $result->id;
 
     }
+    
 
     //temp_longinfoに品番ごとのテーブルを作成する
     public function create_new_longinfo_table($name,$item_arr)
@@ -314,4 +324,102 @@ class UploadRepository
     }   
 
 
+    public function get_parent_items()
+    {   
+        //親品番を取得する
+        // $databaseName = DB::connection('third_mysql')->getDatabaseName();
+        $tables = DB::connection('second_mysql')->select('SHOW TABLES');
+        return $tables;
+    }
+
+    //在庫確認
+    public function stock_confirmation($item)
+    {
+        // 指定された item_code に対応する process6_stock の値を取得
+        $stock = Stock::where('processing_item', $item)->pluck('process6_stock')->first();
+        
+        return $stock;
+    }
+
+    public function erase_quantity_minutes($item,$quantity)
+    {
+        if (strpos($item, "704") !== false) {
+            DB::beginTransaction();
+            try {
+                // 指定された item_code に対応する process6_stock の値を取得
+                $stock = Stock::where('processing_item', $item)->select('process6_stock')->first();
+                
+                if ($stock) {
+                    $new_quantity = $stock->process6_stock - $quantity;
+
+                    // process6_stock の値を更新
+                    Stock::where('processing_item', $item)->update(['process6_stock' => $new_quantity]);
+                }
+
+                DB::commit();
+                return true;
+            } catch (\Throwable $th) {
+                DB::rollBack();
+                return false;
+                // エラーハンドリング（例: ログ出力や例外を再スローするなど）
+                throw $th;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+    public function get_long_term_date()
+    {
+        $days = Long_term_date::pluck('day')->toArray();
+        return $days;
+    }
+
+    public function quantity_addition($item,$delivery_date,$quantity)
+    {
+        // dd($long_term_date,$delivery_date,$quantity);
+        if (strpos($item, "704") !== false) {
+             // day カラムが $delivery_date と一致するレコードを取得
+            $record = DB::connection('second_mysql')->table($item)
+                ->where('day', $delivery_date)
+                ->first();
+
+            if ($record) {
+                // process1 から process10 までをループで処理
+                for ($i = 1; $i <= 10; $i++) {
+                    $processColumn = "process{$i}";
+
+                    // カラムが存在するか確認
+                    if (Schema::connection('second_mysql')->hasColumn($item, $processColumn)) {
+                        // カラムに $quantity を加算
+                        DB::connection('second_mysql')->table($item)
+                            ->where('day', $delivery_date)
+                            ->update([
+                                $processColumn => $record->$processColumn + $quantity
+                            ]);
+
+                    }
+                }
+                $column = "addition";
+                if (Schema::connection('second_mysql')->hasColumn($item, $column)) {
+                    // カラムに $quantity を加算
+                    DB::connection('second_mysql')->table($item)
+                        ->where('day', $delivery_date)
+                        ->update([
+                            $column => $record->$column + $quantity
+                        ]);
+                }
+            }
+        }
+    }
+    //履歴に追加
+    public function adding_order_history($item,$delivery_date,$quantity)
+    {
+        Additional_information::create([
+            'item_name' => $item,
+            'request_date' => $delivery_date,
+            'quantity' => $quantity,
+        ]);
+    }
 }
