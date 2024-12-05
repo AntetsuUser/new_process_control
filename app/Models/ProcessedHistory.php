@@ -31,5 +31,7 @@ class ProcessedHistory extends Model
         'delivery_date',
         'capture_date',
         'input_datetime',
+        'input_complete_flag',
+
     ];
 }

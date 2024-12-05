@@ -1,0 +1,105 @@
+#app
+{
+    display: none;
+}
+body
+{
+    font-size: 16px;
+}
+main
+{
+    display: none;
+}
+.th_text
+{
+    font-size: 20px;
+}
+.table_area
+{
+    margin: auto 1px;
+    max-height: 100vh; /* テーブルの最大高さを設定 (必要に応じて調整) */
+    overflow-y: auto; /* 縦スクロールを有効にする */
+    border: 1px solid #333333;
+}
+.table_area::-webkit-scrollbar 
+{
+    background: white;
+    width: 5px;
+    height: 5px;
+    border-radius: 20px;
+}
+.table_area::-webkit-scrollbar-thumb 
+{
+    background-color: #536E83;
+    border-radius: 20px;
+}
+table {
+    text-align:center;
+    border-collapse: separate;
+    border-spacing: 0;
+    empty-cells: show;
+    width: 100%;
+}
+
+th, td {
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    text-align: center;
+    vertical-align:middle;
+}
+
+thead  {
+    position: sticky;
+    top: 0;
+    background: white;
+    background-color: #c8f5d1;
+}
+
+.blue_line
+{
+    border-top: 2px solid rgb(0, 0, 255);
+}
+.black_line
+{
+    border-bottom: 2px solid black; /* 1pxの黒い枠線 */
+}
+
+.background_color_blue
+{
+    background-color: rgb(100, 1000, 250);
+}
+
+
+.background_color_yellow
+{
+    background-color: rgb(248, 248, 80);
+}
+
+.background_color_red
+{
+    background-color: rgb(160, 160, 160);
+}
+
+.reload_btn
+{
+    color: #111;
+    border: 1px solid #111;
+    background-color: #dbdbdb;
+    padding: 5px 20px;
+    border-radius: 5px;
+}
+
+.item_name
+{
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.show
+{
+    display: block;
+}
+.hide
+{
+    display: none;
+}

@@ -3,6 +3,7 @@
 /////////////////////////////////////////////////////////////////
 $(function()
 {   
+        
     //リードタイムの色を塗る
     lead_time_coloring();
     //選択可能な行に色を塗る
@@ -12,6 +13,16 @@ $(function()
     in_work_cell();
     //平準化のマスを黄色く
     LevelingPrediction();
+    let local_ip= "111.111.111.111";
+    getLocalIP().then(ip => {
+        console.log('ローカルIPアドレス:', ip);
+        local_ip = ip;
+        $('#local_ip').val(local_ip)
+    }).catch(error => {
+        console.error('エラーが発生しました:', error);
+        $('#local_ip').val(local_ip)
+    });
+    
 });
 
 /////////////////////////////////////////////////////////////////
@@ -78,12 +89,10 @@ function in_work_cell() {
         } else {
             // 長期作成日が違った場合
             unmatched = true;
-            console.log("よばれた")
             addToUnmatchedArr(unmatched_arr, element['parent_name'], element['process'], element['processing_quantity']);
         }
     });
     if (Object.keys(unmatched_arr).length > 0) {
-        console.log(unmatched_arr);
         Object.keys(unmatched_arr).forEach(parent_name => 
         {
             let item_flag = false;
@@ -118,14 +127,11 @@ function in_work_cell() {
                     let color_td_table = $("#info_table tbody tr").eq(row).find('td');
                     let rows = td_table.length;                    
                     let remaining_quantity = Number(unmatched_arr[parent_name][process_text]);
-                    console.log(parent_name)
                     for(let i = rows - 1; i >= col; i--){
                         let quantity = td_table.eq(i).text();
                         let item_quantity = color_td_table.eq(i).text().replace('残', '');
                         if(quantity != "" &&  (Number(quantity) != Number(item_quantity)))
                         {
-                            console.log(quantity)
-                            console.log(item_quantity)
                             quantity = Number(quantity);
                             if (remaining_quantity -= quantity >= 0) {
 
@@ -284,12 +290,15 @@ $(document).on('click', 'table tbody tr td:nth-child(n+4)', function()
     //trにset_celは含まれているか？
     let rowClass = $(this).closest('tr').hasClass('set_cel');
     let read_time_flag ;
+    let remaining_count_flag ;
     //リードタイムチェック
     read_time_flag = read_time_check($(this))
 
+    remaining_count_flag = remaining_count_check($(this))
+        
 
     // セルのテキストが空でない場合かつ、'残'の文字が含まれている場合の処理
-    if (cellText !== "" && cellText.includes('残') && rowClass == true && read_time_flag == false) {
+    if (cellText !== "" && cellText.includes('残') && rowClass == true && read_time_flag == false && remaining_count_flag == false) {
         selection_elements = $(this);
         //長期数量を表示
         // Maxロットを取得し表示
@@ -499,6 +508,7 @@ $('#print').on('click',function(){
     var allHaveClass = false;
     var className = 'selected'; // 確認したいクラス名
     let select_arr = [];
+    let ip = $('#local_ip').val()
     $('#info_table td').each(function(index) {
         if ($(this).hasClass(className)) {
             allHaveClass = true;
@@ -590,7 +600,6 @@ $('#print').on('click',function(){
             let long_term_all = 0; // デフォルト値を設定
             for (let index = tr_index; index > 0 && index > tr_index - for_count -1; index--) {
                 let element = table_row.eq(index).find('td').eq(td_index);
-                console.log(element);
                 // elementがjQueryオブジェクトであることを確認
                 if (element.length) {
                     // クラスをチェック
@@ -616,12 +625,14 @@ $('#print').on('click',function(){
                 delivery_date = table_th_row.eq(td_index).attr('id');
             }
 
+            
+
 
             // 配列に格納
             //[品目コード、工程、納期、着手日、加工数、今まで何個加工したか、長期数量、設備番号、作業者id,工程番号]
             // select_arr.push([item_code,process,delivery_date,formattedDate,processing_quantity,processing_all,long_term_all,lineNumbers,workersid,process_number]);
             //[品目コード、工程、納期、着手日、加工数、今まで何個加工したか、長期数量、設備番号、作業者id,工程番号]
-            select_arr.push([item_code,process,delivery_date,formattedDate,processing_quantity,long_term_all,lineNumbers,workersid,process_number]);
+            select_arr.push([item_code,process,delivery_date,formattedDate,processing_quantity,long_term_all,lineNumbers,workersid,process_number,ip]);
         
         }
 
@@ -717,6 +728,35 @@ function read_time_check(selection_elements) {
     
     return hasReadTimeBefore;
 }
+/////////////////////////////////////////////////////////////////
+// タップした前の日に残りの数があるか調べる
+//タップされた箇所の要素が渡される
+/////////////////////////////////////////////////////////////////
+function remaining_count_check(selection_elements) {
+    var previousTds = selection_elements.prevAll('td');
+
+    // 最後の3つを除外
+    var filteredTds = previousTds.slice(0, Math.max(previousTds.length - 3, 0));
+    
+
+    // テキストが文字以上入っている td を取得
+    var nonEmptyTds = filteredTds.filter(function() 
+    {
+        return $(this).text().trim().length > 0; // 3文字以上のテキストを持つ td
+    });
+
+    console.log(nonEmptyTds.length);
+
+    if(nonEmptyTds.length >= 1)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 /////////////////////////////////////////////////////////////////
 //一つ目の工程の在庫をチェックして選択できるか判断する
 //在庫チェック
@@ -866,3 +906,33 @@ $(document).on('click',function(e) {
 		container.removeClass('active');
 	}
 });
+
+
+////////////////////////////////
+//IPを取得
+///////////////////////////////
+async function getLocalIP() {
+    return new Promise((resolve, reject) => {
+        const peerConnection = new RTCPeerConnection({
+            iceServers: []
+        });
+
+        peerConnection.createDataChannel('');
+
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate && event.candidate.candidate) {
+                const candidate = event.candidate.candidate;
+                const ipMatch = candidate.match(/(\d{1,3}\.){3}\d{1,3}/);
+
+                if (ipMatch) {
+                    resolve(ipMatch[0]);
+                    peerConnection.close();
+                }
+            }
+        };
+
+        peerConnection.createOffer()
+            .then((offer) => peerConnection.setLocalDescription(offer))
+            .catch((error) => reject(error));
+    });
+}

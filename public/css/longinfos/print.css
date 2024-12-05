@@ -190,6 +190,18 @@ canvas
 
 }
 
+
+.btn_area{
+  display: flex;
+    justify-content: space-evenly;
+    flex-wrap: nowrap;
+    width: 35%;
+}
+#id_btn
+{
+    padding: 10px 30px;
+}
+
 /* 印刷用css */
 @media print 
 {
@@ -203,7 +215,11 @@ canvas
     html, body {
         height: auto;
         }
-    .browser_back_area {
+    .browser_back_area ,.news-banner__content{
+        display: none;
+    }
+    .news-banner__content p
+    {
         display: none;
     }
 
@@ -211,6 +227,10 @@ canvas
         display: none;
     }
     #print_btn
+    {
+        display: none;
+    }
+    #id_btn
     {
         display: none;
     }
@@ -224,4 +244,49 @@ canvas
         padding-top: 0px !important;
     }
 
+}
+
+.modalArea {
+  display: none;
+  position: fixed;
+  z-index: 10; /*サイトによってここの数値は調整 */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.modalBg {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(30,30,30,0.9);
+}
+
+.modalWrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform:translate(-50%,-50%);
+  width: 100%;
+  max-width: 600px;
+  padding: 3% 7%;
+  background-color: #fff;
+}
+
+.closeModal {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  cursor: pointer;
+  font-size: 35px;
+}
+.modal_text
+{
+    font-size: 25px;
+
+}
+.modal_btn_area
+{
+    text-align: center;
+    margin-top: 3%;
 }

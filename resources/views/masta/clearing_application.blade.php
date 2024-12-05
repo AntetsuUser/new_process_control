@@ -20,10 +20,11 @@
             <button type="button" class="btn btn-success" onclick="window.location.href='{{ route('masta.shipment_application') }}'">反映</button>
         </div>
         <div class="table_container">
-            <table class="shipping_data">
+            <table class="shipping_data filtering_table">
                 <thead>
                     <tr>
                         <th></th>
+                        <th>購買発注番号</th>
                         <th>品目コード</th>
                         <th>品目名称</th>
                         <th>要求納期</th>
@@ -37,6 +38,7 @@
                         <tr>
                             <input type="hidden" name="id" id="id_{{ $count }}" value="{{  $value["id"] }}">
                             <td class="center"><button type="button" class="btn btn-danger delete_button">削除</button></td>
+                            <td>{{ $value["order_number"] }}</td>
                             <td>{{ $value["item_code"] }}</td>
                             <td>{{ $value["item_name"] }}</td>
                             <td>{{ $value["delivery_date"] }}</td>
@@ -53,8 +55,21 @@
 
 @if(config('app.env') === 'production')
     <script src=" {{secure_asset('js/masta/upload.js')}}"></script>
+    <script src="{{secure_asset('js/other_filtering.js')}}" ></script>
 @else
     <script src=" {{asset('js/masta/upload.js')}}"></script>
+    <script src="{{asset('js/other_filtering.js')}}" ></script>
 @endif
+{{-- ページが読み込まれたらフォームの状態をリセットする --}}
+
+
+<script>
+    window.addEventListener('pageshow', function(event) {
+
+        if (event.persisted) {
+            window.location.reload(true);
+        }
+    });
+</script>
 
 @endsection

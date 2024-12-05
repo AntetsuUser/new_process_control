@@ -31,36 +31,42 @@
         <a href="{{ route('masta.equipment_insert') }}" id="output" class="btn btn-primary main_btn addition">設備追加</a>
     </div>
     <div class="table_area">
-        <table id="facility_table">
-            <tr class="th_fixed">
-                <th>更新</th>
-                <th>No.</th>
-                <th>工場</th>
-                <th>製造課</th>
-                <th>ライン</th>
-                <th>設備No</th>
-                <th>区分</th>
-                <th>型式</th>
-            </tr>
-            @foreach ($equipment as $value)
-            <tr>
-                <td><a href="{{ route('masta.equipment_insert',['id' => $value->id]) }}"><button class="update_btn">更新</button></a></td>
-                <td>{{ $value->id }}</td>
-                <td>{{ $value->factory_name }}</td>
-                <td>{{ $value->department_name }}</td>
-                <td>{{ $value->line }}</td>
-                <td>{{ $value->equipment_id }}</td>
-                <td>{{ $value->category }}</td>
-                <td>{{ $value->model }}</td>
-            </tr>
-            @endforeach
+        <table id="facility_table" class="filtering_table">
+            <thead>
+                <tr class="th_fixed">
+                    <th></th>
+                    <th>No.</th>
+                    <th>工場</th>
+                    <th>製造課</th>
+                    <th>ライン</th>
+                    <th>設備No</th>
+                    <th>区分</th>
+                    <th>型式</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($equipment as $value)
+                    <tr>
+                        <td><a href="{{ route('masta.equipment_insert',['id' => $value->id]) }}"><button class="update_btn">更新</button></a></td>
+                        <td>{{ $value->id }}</td>
+                        <td>{{ $value->factory_name }}</td>
+                        <td>{{ $value->department_name }}</td>
+                        <td>{{ $value->line }}</td>
+                        <td>{{ $value->equipment_id }}</td>
+                        <td>{{ $value->category }}</td>
+                        <td>{{ $value->model }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
         </table>
     </div>
 </div>
 
 @if(config('app.env') === 'production')
     <script src=" {{secure_asset('js/masta/equipment.js')}}"></script>
+        <script src="{{secure_asset('js/other_filtering.js')}}" ></script>
 @else
     <script src=" {{asset('js/masta/equipment.js')}}"></script>
+        <script src="{{asset('js/other_filtering.js')}}" ></script>
 @endif
 @endsection

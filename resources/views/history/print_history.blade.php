@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
 @section('css')
 @if(config('app.env') === 'production')
     <link href="{{ secure_asset('/css/history/print_history.css') }}" rel="stylesheet">
@@ -16,6 +20,11 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="print_title">印刷履歴</div>
+        @if (session('status'))
+            <div class="alert alert-success">
+                {{ session('status') }}
+            </div>
+        @endif
         <div class="search_area">
             <div class="input_seitch">
                 <input type="radio" name="s2" id="not_entered" value="1" checked="" onclick="toggleRows()">
@@ -23,13 +32,18 @@
                 <input type="radio" name="s2" id="entered" value="0" onclick="toggleRows()">
                 <label for="entered" class="switch-off">入力済み</label>
             </div>
+            <div style="margin-left: 80px;"><button onclick="reset()"　>表示リセット</button></div>
+            <div>
+                {{-- <input type="text" id="searchInput" placeholder="検索...">
+                <button onclick="searchTable()">検索</button> --}}
+            </div>
         </div>
         <div class="table_area">
             <table id="print_history_table">
                 <thead>
                     <tr class="th_fixed">
                     <th></th>
-                    <th class="filter_th filter_btn>固有ID</th>
+                    <th class="filter_th">固有ID<span class="filter_position" filter_btn></span></th>
                     <th class="filter_th" filter_btn>品目名称</th>
                     <th class="filter_th" filter_btn>品目コード</th>
                     <th class="filter_th" filter_btn>子品番1</th>
@@ -81,22 +95,6 @@
 
 </div>
 <script>
-    function toggleRows() {
-        var isEntered = document.getElementById('entered').checked;
-        var rows = document.querySelectorAll('.entered_row');
-
-        rows.forEach(function(row) {
-            var flag = row.getAttribute('data-flag') === 'true';
-            if ((isEntered && flag) || (!isEntered && !flag)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    }
-
-    // ページが読み込まれたときに初期状態を設定
-    window.onload = toggleRows;
     //再印刷ボタンを押したとき
     let table = document.getElementById("print_history_table");
     const update_btn = document.getElementsByClassName("reprint_btn");
@@ -126,7 +124,6 @@
             form.submit()
         })
     }
-
 </script>
 
 @if(config('app.env') === 'production')
@@ -134,7 +131,5 @@
 
 @else
     <script src="{{asset('js/filter.js')}}"></script>
-
-    
 @endif
 @endsection

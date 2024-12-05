@@ -43,4 +43,9 @@ class PrintHistoryService
         return $print_data;
     }
 
+    public function entered($directions_id)
+    {
+        $this->_printhistoryRepository->entered($directions_id);
+    }
+
 }

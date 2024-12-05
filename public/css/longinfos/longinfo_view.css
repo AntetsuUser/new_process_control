@@ -1,4 +1,3 @@
-
 .back_btn {
     width: 20%;
     margin-left: 1%;
@@ -23,9 +22,9 @@
     border-radius: 20px;
 }
 .scrolltable {
-	border:1px solid #333333;
+	  border:1px solid #333333;
     max-height: calc(100vh - 160px); /* ヘッダーやフッターの高さに応じて150pxを調整 */
-	overflow-y:auto;
+	  overflow-y:auto;
     margin-top: 10px;
     font-size: 12px;
 }
@@ -57,11 +56,12 @@
     position:sticky;
     top:0;
     background:white;
+    z-index: 3;
 }
 
 .top_blue
 {
-    border-top: solid 2px #4472C4 !important;
+    border-bottom: solid 2px #4472C4 !important;
 }
 .right_black
 {
@@ -399,4 +399,23 @@ label
     background-color: #FFC800;
     border: 1px #FFC800 solid;
     color: #fff;
+}
+
+.mark_icon
+{
+  
+  position: absolute;
+  font-size:20px;
+  transform: translate(-50%, -50%); /* 要素を画面の中心に */
+  top: 45%;
+  left: 50%;
+  transform-origin: center; /* 原点を要素の中心に */
+}
+.mark_area
+{
+  position: relative;
+}
+.right_border
+{
+  border-right: 1px dotted #000 !important; /* 点線の枠線 */
 }

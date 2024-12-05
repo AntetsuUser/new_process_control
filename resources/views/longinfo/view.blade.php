@@ -32,6 +32,7 @@
 {{-- 印刷ボタン --}}
 {{-- 長期表示 --}}
 <div class="container-fluid">
+    <input type="hidden" name="local_ip" id="local_ip" value="">
     <div class="row">
         <!-- モーダルウィンドウ【数量選択画面】 -->
         <div id="easyModal" class="modal">
@@ -112,22 +113,24 @@
                             @endforeach
                         </tr>
                     </thead>
+                    
                     <tbody>
+                        {{-- {{ dd($material_mark_arr); }} --}}
                         @foreach ($info_process_arr as $key => $process)
                             {{-- 基本情報 --}}
                             <tr>
-                                <td class="top_blue bottom_black info_backcolor info_item" rowspan="2">{{ $key }}</td>
-                                <td class="top_blue info_backcolor"></td>
-                                <td class="top_blue right_black info_backcolor">102素材在庫:{{ $stock_arr[$key]["material"][0] }}</td>
+                                <td class="bottom_black info_backcolor info_item" rowspan="2">{{ $key }}</td>
+                                <td class="info_backcolor"></td>
+                                <td class="right_black info_backcolor">102素材在庫:{{ $material_arr[$key][0] }}</td>
                                 @for ($i = 0; $i <= count($date_arr[0]); $i++)
-                                    <td class="top_blue info_backcolor"></td>
-                                    <td class="top_blue info_backcolor"></td>
+                                    <td class="info_backcolor mark_area right_border"><div class="mark_icon">{{ $material_mark_arr["102"][$key][$i] }}</div></td>
+                                    <td class="info_backcolor mark_area "><div class="mark_icon">{{ $material_mark_arr["103"][$key][$i] }}</div></td>
                                 @endfor
                             </tr>
                             <tr>
                                 <td class="bottom_black info_backcolor" hidden></td>
                                 <td class="bottom_black info_backcolor"></td>
-                                <td class="bottom_black right_black info_backcolor">103素材在庫:{{ $stock_arr[$key]["material"][1] }}</td>
+                                <td class="bottom_black right_black info_backcolor">103素材在庫:{{ $material_arr[$key][1] }}</td>
                                 @for ($i = 0; $i <= count($date_arr[0]); $i++)
                                 
                                     @if($quantity_arr[$key][0][$i] === "" or $quantity_arr[$key][0][$i] === 0)
@@ -140,16 +143,30 @@
                             {{-- 工程 --}}
                             @foreach ($process as $process_key => $data)
                                 <tr>
-                                    <td><p hidden>0/{{ $lot_arr[$key][$process_key] }}</p></td>
-                                    <td>{{ $data }}</td>
-                                    <td class="right_black">完{{ preg_replace('/\d+/', '', $data) }}在庫：{{ $stock_arr[$key]["process"][$process_key] }}</td>
-                                    @for ($i = 0; $i <= count($date_arr[0]); $i++)
-                                        @if($quantity_arr[$key][$process_key+1][$i] === "" or $quantity_arr[$key][$process_key+1][$i] === 0)
-                                            <td colspan="2" class="tap_day main_row"></td>
-                                        @else
-                                            <td colspan="2" class="tap_day main_row">残{{$quantity_arr[$key][$process_key+1][$i]}}</td>
-                                        @endif
-                                    @endfor
+                                    @if ($loop->last)
+                                        <td class="top_blue"><p hidden>0/{{ $lot_arr[$key][$process_key] }}</p></td>
+                                        <td class="top_blue">{{ $data }}</td>
+                                        <td class="top_blue right_black">完{{ preg_replace('/\d+/', '', $data) }}在庫：{{ $stock_arr[$key]["process"][$process_key] }}</td>
+                                        @for ($i = 0; $i <= count($date_arr[0]); $i++)
+                                            @if($quantity_arr[$key][$process_key+1][$i] === "" or $quantity_arr[$key][$process_key+1][$i] === 0)
+                                                <td colspan="2" class="tap_day main_row top_blue"></td>
+                                            @else
+                                                <td colspan="2" class="tap_day main_row top_blue">残{{$quantity_arr[$key][$process_key+1][$i]}}</td>
+                                            @endif
+                                        @endfor
+                                    @else
+                                        <td><p hidden>0/{{ $lot_arr[$key][$process_key] }}</p></td>
+                                        <td>{{ $data }}</td>
+                                        <td class="right_black">完{{ preg_replace('/\d+/', '', $data) }}在庫：{{ $stock_arr[$key]["process"][$process_key] }}</td>
+                                        @for ($i = 0; $i <= count($date_arr[0]); $i++)
+                                            @if($quantity_arr[$key][$process_key+1][$i] === "" or $quantity_arr[$key][$process_key+1][$i] === 0)
+                                                <td colspan="2" class="tap_day main_row"></td>
+                                            @else
+                                                <td colspan="2" class="tap_day main_row">残{{$quantity_arr[$key][$process_key+1][$i]}}</td>
+                                            @endif
+                                        @endfor
+                                    @endif
+                                    
                                 </tr>
                             @endforeach
                             
@@ -226,6 +243,14 @@
             // window.location.reload();
         }, 1000); // 100ミリ秒の遅延を設定
         }
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                console.log('タブが非アクティブになりました');
+            } else {
+                console.log('タブがアクティブになりました');
+            }
+        });
     });
 
 </script>

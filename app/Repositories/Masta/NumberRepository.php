@@ -10,6 +10,8 @@ use App\Models\Factory;
 
 use App\Models\Stock;
 
+use App\Models\Material_stock;
+
 
 // データベース作成に使う
 use Illuminate\Support\Facades\Schema;
@@ -243,6 +245,16 @@ class NumberRepository
                 // 例外をログに記録したり、ユーザーにエラーメッセージを表示したりできる
                 throw $th;
             }
+        }
+    }
+
+    public function material_entry($data)
+    {
+        //Material_stock::DBのmaterial_nameからむに$data["material_name"]が存在するか確認
+        $existingMaterial = Material_stock::where('material_name', $data['material_name'])->first();
+        //なかった場合のみcreate
+        if (!$existingMaterial) {
+            return Material_stock::create($data);
         }
     }
 

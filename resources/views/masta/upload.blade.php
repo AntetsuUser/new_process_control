@@ -28,8 +28,8 @@
             <label class="tab_item" for="all">長期情報</label>
             <input id="shipment" type="radio" name="tab_item" {{ $currentTab == 'shipping' ? 'checked' : '' }}>
             <label class="tab_item" for="shipment">出荷情報アップロード</label>
-            <input id="material_ledger" type="radio" name="tab_item">
-            <label class="tab_item" for="material_ledger">材料台帳</label>
+            <input id="material" type="radio" name="tab_item" {{ $currentTab == 'material' ? 'checked' : '' }}>
+            <label class="tab_item" for="material">材料入荷情報アップロード</label>
             <input id="adding_request" type="radio" name="tab_item" {{ $currentTab == 'adding_request' ? 'checked' : '' }}>
             <label class="tab_item" for="adding_request">追加依頼</label>
             <!-- 長期情報アップロード -->
@@ -97,6 +97,7 @@
                         @if (session('message_shipment'))
                             <div class="alert alert-{{ session('message_type') }}">
                                 {{ session('message_shipment') }}
+                                {{ session('order_number') }}
                             </div>
                         @endif
                         <div class="contents_margin contents">
@@ -175,37 +176,61 @@
                     </table>
                 </div>
             </div>
-            <!-- 材料台帳 -->
-            <div class="tab_content" id="material_ledger_content">
+            <!-- 材料入荷情報アップロード -->
+            <div class="tab_content" id="material_content">
                 <div class="tab_content_description">
-                    <form>
+                    <form id="form_upload_material" action="{{ route('masta.material_upload') }}" method="POST"enctype="multipart/form-data">
+                        @csrf
                         <div class="contents_margin contents">
                             <div class="row form_range">
-                                <div class="col-md-10">
-                                    <input type="file" name="file" id="shipment_file" value="選択" class="submit_btn">
+                                <div class="col-md-4">
+                                    <input type="file" name="material_file" id="material_file" value="選択" class="submit_btn">
                                 </div>
-                                <div class="col-md-2 btn_class">
+                                <div class="col-md-4">
+                                    <label for="">反映させる入荷日</label>
+                                    <input type="date" name="arrival_date" id="arrival_date"value="">
+                                </div>
+                                <div class="col-md-4 btn_class">
                                     <button type="submit" class="add_btn">送信</button>
                                 </div>
                             </div>
                         </div>
                     </form>
+                    @error('material_file')
+                        <div class="ms-3 text-danger">{{ $message }}</div>
+                    @enderror
+                    @error('arrival_date')
+                        <div class="ms-3 text-danger">{{ $message }}</div>
+                    @enderror
                     <table class="contents_margin">
                         <thead>
                             <tr>
                                 <th>ファイル種別</th>
                                 <th>ファイル名</th>
+                                <th>入荷日</th>
                                 <th>アップロード日時</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @for ($i=0; $i < 10; $i++) 
+                         <tbody>
+                            <?php $count = 0; ?>
+                            @foreach ($material_log as $value)
                             <tr>
+                                <td>{{ $value["category"] }}</td>
+                                <td>{{ $value["file_name"] }}<button type="button" class="send-post btn btn-link" onclick="submitForm_material({{ $value['id'] }})">詳細</button></td>
+                                <td>{{ $value["start_date"] }}</td>
+                                <td>{{ $value["upload_day"] }}</td>
+                                <?php $count = $count + 1; ?>
+                            </tr>
+                            @endforeach
+                            @if ($count < 10) @for ($i=$count; $i < 10; $i++)
+                            <tr>
+                                <td>　</td>
                                 <td>　</td>
                                 <td>　</td>
                                 <td>　</td>
                             </tr>
                             @endfor
+                            @endif
                         </tbody>
                     </table>
                 </div>
@@ -300,6 +325,7 @@
         var idInput = document.createElement('input');
         idInput.type = 'hidden';
         idInput.name = 'shipment_log_id';
+
         idInput.value = id;
         form.appendChild(idInput);
 
@@ -307,11 +333,62 @@
         document.body.appendChild(form);
         form.submit();
     }
+
+    function submitForm_material(id) {
+        // フォームを作成
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route('masta.material_up_history') }}';
+
+        // CSRFトークンを追加
+        var tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = '_token';
+        tokenInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(tokenInput);
+
+        // shipment_log_idを追加
+        var idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'material_log_id';
+        idInput.value = id;
+        form.appendChild(idInput);
+
+        // フォームをドキュメントに追加して送信
+        document.body.appendChild(form);
+        form.submit();
+    }
+    
+    
 </script>
 @if(config('app.env') === 'production')
     <script src=" {{secure_asset('js/masta/calendar.js')}}"></script>
 @else
     <script src=" {{asset('js/masta/calendar.js')}}"></script>
 @endif
+{{-- ページが読み込まれたらフォームの状態をリセットする --}}
+<script>
+    window.addEventListener('pageshow', function(event) {
+
+        // if (event.persisted) {
+        //     window.location.reload(true);
+        //     document.getElementById('form_upload').reset();
+        //     document.getElementById('form_upload_shipping').reset();
+        //     document.getElementById('form_order').reset();
+        // }
+        if (event.persisted) {
+            // 各ファイル入力要素の値をリセット
+            document.getElementById('longinfo_file').value = "";
+            document.getElementById('shipment_file').value = "";
+
+            // 追加依頼フォーム内の他のファイルフィールドがあればここでリセット
+            const formOrderFileInput = document.querySelector('#form_order input[type="file"]');
+            if (formOrderFileInput) {
+                formOrderFileInput.value = "";
+            }
+        }
+    });
+     
+</script>
 
 @endsection

@@ -1,129 +1,154 @@
-$(document).ready(function() {
-    console.log("よばれました");
-    var $icon = $('<i class="fa fa-filter filter_button"></i>'); // Font Awesomeのアイコンクラス
+let flag =1;
+var selectedFilters = {};
+$(function() {
+    // ページが読み込まれたときに初期状態を設定
+    window.onload = toggleRows;
+    // Font Awesomeのアイコンを設定
+    var $icon = $('<i class="fa fa-filter filter_button"></i>'); 
     $('#print_history_table thead tr').first().find('th').slice(1).each(function() {
         $(this).append($icon.clone());
     });
 
-    // アイコンがタップされたときの処理
-    $('#print_history_table').on('click', '.filter_button', function(e) {
-        e.stopPropagation(); // イベントのバブリングを防止
+    // フィルターアイコンが選択されたら
+    $(document).on('click', '.filter_button', function(e) {
+        //連続で押せないようにする
+        e.stopPropagation();
 
         // 既存のドロップダウンを非表示にする
         $('.filter-dropdown').remove();
 
-        // クリックされたアイコンの背景色をリセット
-        $('.filter_button').css('background-color', '');
+        //テーブルの値を取得してくる
+        var table_arr = table_loading();
+        //選択されたアイコンの要素を取得
+        var $clickedIcon = $(this);
+        let allFilterButtons = $('.filter_button');
+        var selected_index = allFilterButtons.index($clickedIcon);
 
-        var $clickedIcon = $(this); // クリックされたアイコン
-        $clickedIcon.css('background-color', 'yellow'); // 背景色を黄色に
-
-        var $th = $clickedIcon.closest('th'); // タップされたアイコンの親の<th>を取得
-        var columnIndex = $th.index(); // 列インデックスを取得
-
-        // タップされた列のすべての<td>要素を取得
-        var values = [];
-        $('#print_history_table tbody tr').each(function() {
-            var $td = $(this).find('td').eq(columnIndex);
-            var value = $td.text().trim();
-            if (value && !values.includes(value)) {
-                values.push(value);
+        //選択されたアイコンの親のthの要素を取得する
+        var $th = $clickedIcon.closest('th');
+        //thの親のindexを取得
+        var columnIndex = $th.index();
+        //フィルターのareaを作成する
+        var $filterDropdown = createDropdown();
+        const addedItems = new Set();
+        //テーブルの値をフィルタにのリストに追加する
+        console.log(table_arr);
+        table_arr.forEach(function(value) {
+            const item = value[columnIndex];
+            if (!addedItems.has(item)) {
+                addListItem($filterDropdown, item);
+                addedItems.add(item);
             }
         });
 
-        // リストボックスのHTMLを作成
-        var $filterDropdown = createDropdown();
 
-        // タップされた列の<td>要素の値をリストに追加
-        values.forEach(function(value) {
-            addListItem($filterDropdown, value);
-        });
-
-        // クリックしたアイコンの位置を取得してリストボックスをその下に表示
+        if (selectedFilters[columnIndex]) {
+            $filterDropdown.find('input[type="checkbox"]').each(function() {
+                var checkboxValue = $(this).val();
+                $(this).prop('checked', selectedFilters[columnIndex].includes(checkboxValue));
+            });
+        }
+        //アイコンが押されたらフィルターリストを追加する
         var iconOffset = $clickedIcon.offset();
         $filterDropdown.css({
             top: iconOffset.top + $clickedIcon.height(),
             left: iconOffset.left
         }).appendTo('body').fadeIn();
 
+        //フィルターのOKボタンが押されたら
+        $('.filter-ok').off('click').on('click', function() {
+            var selectedValues = [];
+            var values = [];
+
+            $filterDropdown.find('input[type="checkbox"]:checked').not('.select-all').each(function() {
+                selectedValues.push($(this).val());
+            });
+
+            $filterDropdown.find('input[type="checkbox"]').each(function() {
+                values.push($(this).val());
+            });
+            var isEntered = document.getElementById('entered').checked;
+            console.log(values);
+            selectedFilters[columnIndex] = selectedValues;
+            hide_selected_line(columnIndex, selectedValues,isEntered);
+
+            var allChecked = selectedValues.length === values.length -1;
+            $clickedIcon.css('background-color', allChecked ? '' : 'yellow');
+            $clickedIcon.addClass("yellow_s");
+
+            // from_invisible_to_display(columnIndex, selectedValues,$filterDropdown)
+
+            // let hiddenElements = $('.entered_row:hidden');
+            $filterDropdown.fadeOut(function() {
+                $(this).remove();
+            });
+        });
     });
+
 });
 
+function table_loading() {
+    let table_arr = [];  // 配列を初期化
+    let tables = $('#print_history_table');
+    
+    $('#print_history_table thead').each(function(rowIndex, row) {
+        $(row).find('th').each(function(cellIndex, cell) {
+            table_arr[cellIndex] = $(cell).text();
+        });
+    });
+    var isEntered = document.getElementById('entered').checked;
+    console.log(isEntered);
+    let data_arr = [];
+    if (isEntered) {
+        // console.log("未入力の行を表示");
+        $('#print_history_table tr').not('[data-flag="false"]').each(function(rowIndex, row) {
+            if (rowIndex === 0) return;
+            let rowData = [];
+            $(row).find('td').each(function(cellIndex, cell) {
+                rowData[cellIndex] = $(cell).text();
+            });
+            data_arr.push(rowData);
+        });
+    } else {
+        // console.log("入力のある行を表示");
+        $('#print_history_table tr').not('[data-flag="true"]').each(function(rowIndex, row) {
+            if (rowIndex === 0) return;
+            let rowData = [];
+            $(row).find('td').each(function(cellIndex, cell) {
+                rowData[cellIndex] = $(cell).text();
+            });
+            data_arr.push(rowData);
+        });
+    }
+    
+    return data_arr;
+}
+// フィルターボタンを押したときに表示されるareaの作成
 function createDropdown() {
-    // ドロップダウンのHTMLを作成
-    var $dropdown = $('<div class="filter-dropdown" style="display:none; position:absolute; background-color:white; border:1px solid #ccc; z-index:1000; max-height:200px; width:200px;">' +
-                      '<div style="max-height:150px; overflow-y:auto;">' + // リスト部分のスタイル
+    var $dropdown = $('<div class="filter-dropdown" style="display:none; position:absolute; background-color:white; border:1px solid #ccc; z-index:1000; max-height:200px; width:225px;">' +
+                      '<div style="max-height:150px; overflow-y:auto;">' +
                       '<ul style="list-style:none; padding:10px; margin:0;">' +
                       '<li><input type="checkbox" id="select-all" class="select-all" checked> <label for="select-all">すべて選択</label></li>' +
                       '</ul>' +
                       '</div>' +
-                      '<div style="padding:10px; text-align:right;">' + // ボタン部分のスタイル
+                      '<div style="padding:10px; text-align:right;">' +
                       '<button class="filter-ok" style="margin-right:5px;">OK</button>' +
-                      '<button class="filter-cancel">キャンセル</button>' +
+                      '<button class="filter-cancel">閉じる</button>' +
                       '</div>' +
                       '</div>');
-
-    // 「[すべて選択]」オプションのチェックボックスにイベントを追加
+    //すべて
     var $selectAll = $dropdown.find('.select-all');
     $selectAll.on('change', function() {
         var isChecked = $(this).is(':checked');
         $dropdown.find('input[type="checkbox"]').not('.select-all').prop('checked', isChecked);
     });
-
-    // リストアイテムのチェックボックスの変更時に「すべて選択」チェックボックスの状態を更新
+    //すべて
     $dropdown.on('change', 'input[type="checkbox"]', function() {
         var allChecked = $dropdown.find('input[type="checkbox"]').not('.select-all').length === $dropdown.find('input[type="checkbox"]:checked').not('.select-all').length;
         $selectAll.prop('checked', allChecked);
     });
-
-    // OKボタンのクリックイベントハンドラー
-    $dropdown.find('.filter-ok').on('click', function() {
-        // // 選択された値を取得する処理を追加
-        // var selectedValues = $dropdown.find('input[type="checkbox"]').not('.select-all').filter(':checked').map(function() {
-        //     return $(this).val();
-        // }).get();
-        // console.log('選択された値:', selectedValues);
-
-        // 選択されていない値を取得する処理を追加
-        var unselectedValues ;
-
-        $dropdown.find('input[type="checkbox"]').not('.select-all').filter(':not(:checked)').each(function() {
-            var checkboxIndex = $dropdown.find('input[type="checkbox"]').not('.select-all').index(this); // チェックボックスのインデックスを取得
-            unselectedValues = checkboxIndex + 1 // インデックスを1ベースに変更
-        });
-
-        console.log('選択されていない値とチェックボックスの番号:', unselectedValues);
-
-
-        // アイコンの背景色を変更
-        var $clickedIcon = $('.filter_button[style*="yellow"]');
-        var allChecked = $dropdown.find('input[type="checkbox"]').not('.select-all').length === $dropdown.find('input[type="checkbox"]:checked').not('.select-all').length;
-        if (allChecked) {
-            $clickedIcon.css('background-color', 'white');
-        } else {
-            $clickedIcon.css('background-color', 'yellow');
-        }
-
-        // ドロップダウンを閉じる
-        $dropdown.fadeOut(function() {
-            $(this).remove();
-        });
-    });
-
-    // キャンセルボタンのクリックイベントハンドラー
+    //キャンセルが押されたとき
     $dropdown.find('.filter-cancel').on('click', function() {
-
-         // 選択されていない値を取得する処理を追加
-        var unselectedValues ;
-
-        $dropdown.find('input[type="checkbox"]').not('.select-all').filter(':not(:checked)').each(function() {
-            var checkboxIndex = $dropdown.find('input[type="checkbox"]').not('.select-all').index(this); // チェックボックスのインデックスを取得
-            unselectedValues = checkboxIndex + 1 // インデックスを1ベースに変更
-        });
-
-        console.log('選択されていない値とチェックボックスの番号:', unselectedValues);
-        
-        // ドロップダウンを閉じる
         $dropdown.fadeOut(function() {
             $(this).remove();
         });
@@ -132,14 +157,102 @@ function createDropdown() {
     return $dropdown;
 }
 
+// チェックボックスをフィルターボタンを押したときに表示されるareaに追加
 function addListItem($dropdown, value) {
-    // リストアイテムを追加
-    var id = 'checkbox-' + value.replace(/\s+/g, '-'); // 一意のIDを生成
+
+    var id = 'checkbox-' + value.replace(/\s+/g, '-');
     $dropdown.find('ul').append('<li><label for="' + id + '"><input type="checkbox" id="' + id + '" value="' + value + '" checked> ' + value + '</label></li>');
+
 }
 
-//リストボックスで選択されていないテーブルの行を削除する
-function hide_selected_line()
+//未入力、入力済みのラジオボタンの切替でテーブルの表示するところを変える
+function toggleRows() {
+
+    var isEntered = document.getElementById('entered').checked;
+    var rows = document.querySelectorAll('.entered_row');
+    let allFilterButtons = $('.filter_button');
+    allFilterButtons.css('background-color', '');
+    console.log(isEntered);
+    rows.forEach(function(row) {
+        var a_flag = row.getAttribute('data-flag') === 'true';
+        if ((isEntered && a_flag) || (!isEntered && !a_flag)) {
+            row.classList.remove('tr_hide');
+        } else {
+            row.classList.add('tr_hide');
+        }
+    });
+}
+//非表示にする所
+function hide_selected_line(columnIndex, selectedValues,isEntered) {
+    //表示している行を非表示にする
+    $('#print_history_table tbody tr').not('.tr_hide').each(function() {
+        //今どちらのボタンが押されているか取得
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        var $td = $(this).find('td').eq(columnIndex);
+        var cellValue = $td.text().trim();
+        if (!selectedValues.includes(cellValue)) {
+            $(this).addClass('filter_tr_hide');
+            $(this).addClass('filter_tr_hide' + columnIndex);
+        }
+    });
+    //非表示にしている行に表示しなければならなかったら標示する
+    $('#print_history_table tbody tr').filter('.filter_tr_hide' + columnIndex).each(function() {
+        //今どちらのボタンが押されているか取得
+    
+        var $td = $(this).find('td').eq(columnIndex);
+        console.log(selectedValues);
+        var cellValue = $td.text().trim();
+        if (selectedValues.includes(cellValue)) {
+            //インデクスのクラスをはずして
+            $(this).removeClass('filter_tr_hide' + columnIndex);
+            //ほかにfilter_tr_hide(1~11)のクラスがすいていなかったらclassを外す
+            if(!$(this).attr('class').match(/filter_tr_hide[1-9]|filter_tr_hide10|filter_tr_hide11/))
+            {
+                $(this).removeClass('filter_tr_hide');
+            }
+        }
+    });
+
+}
+//表示をリセットする
+function reset()
 {
+    //フィルターボタンの確認
+    let allFilterButtons = $('.filter_button');
+    allFilterButtons.css('background-color', '');
+    let rows = $('#print_history_table tbody tr');
+    // rows.show();  // Use jQuery's show() method to unhide the rows
+    toggleRows()
+    // $('#searchInput').val('');
+    selectedFilters = {};
+    // 消したいクラスを配列として定義
+    const classesToRemove = ['filter_tr_hide', 'tr_hide'];
 
+    // 各クラスについて、全ての該当要素を取得し、クラスを削除
+    classesToRemove.forEach(className => {
+        document.querySelectorAll(`.${className}`).forEach(element => {
+            element.classList.remove(className);
+        });
+    });
+
+    // 正規表現に一致するクラスを削除
+    const regex = /filter_tr_hide[1-9]|filter_tr_hide10|filter_tr_hide11/;
+    document.querySelectorAll('*').forEach(element => {
+        Array.from(element.classList).forEach(className => {
+            if (regex.test(className)) {
+            element.classList.remove(className);
+            }
+        });
+    });
+    toggleRows()
 }
+//非表示の部分を表示する
+function from_invisible_to_display(columnIndex, selectedValues,$filterDropdown)
+{
+    let list_arr = [];
+    $filterDropdown.find('input[type="checkbox"]').not('.select-all').each(function() {
+            list_arr.push($(this).val());
+        });
+    console.log(list_arr);
+}
+

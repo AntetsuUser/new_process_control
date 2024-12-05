@@ -180,10 +180,10 @@
             </div>
             <a href="{{ route('masta.number_insert') }}" class="btn btn-primary main_btn">品目追加</a>
             <div class="table_div">
-                <table id="number_list_table">
+                <table id="number_list_table" class="filtering_table">
                     <thead>
                         <tr>
-                            <th>更新</th>
+                            <th></th>
                             <th id="col1">No.</th>
                             <th>工程一覧</th>
                             <th id="col2">図面番号</th>
@@ -225,7 +225,9 @@
 </div>
 @if(config('app.env') === 'production')
     <script src="{{secure_asset('js/masta/number.js')}}"></script>
+    <script src="{{secure_asset('js/other_filtering.js')}}" ></script>
 @else
     <script src="{{asset('js/masta/number.js')}}"></script>
+    <script src="{{asset('js/other_filtering.js')}}" ></script>
 @endif
 @endsection

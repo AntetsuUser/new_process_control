@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\Qr\QrReadService;
+use App\Services\LongInfo\LongInfoService;
 
 class QrReadController extends Controller
 {

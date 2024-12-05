@@ -499,7 +499,7 @@ class LongInfoService
         //////////////////////
         $now = Carbon::now(); // 現在の日時を取得
         $now_id = $now->format('ymdHi'); // 2408281430 のようにフォーマット
-
+        // dd($ip);
         //  ipの下4桁を取得
         // IPアドレスをドットで分割
         $parts = explode('.', $ip);
@@ -611,34 +611,47 @@ class LongInfoService
         $reduce_stock_name;
         // 材料
         if (false !== strpos($process, '102')) {
+            $material_index= "child_part_number1";
             if ($join_flag == 1) {
                 // 工程番号から減らす工程在庫のカラム名を作成する
                 $reduce_stock_names = ["material_stock_1"]; 
                 // 工程番号から増やす工程在庫のカラム名を作成する 
                 $increase_stock_names = ["process" . $process_number . "_stock"];
+                $this->material_stock_subtract($parent_name,$process,$material_index,$processing_quantity);
             } else {
                 // 工程番号から増やす工程在庫のカラム名を作成する
                 $increase_stock_names = ["process" . $process_number . "_stock"];
                 if (false !== strpos($process, 'NC')) {
                     // 工程番号から減らす工程在庫のカラム名を作成する
                     $reduce_stock_names = ["material_stock_1"]; 
+
+                    //ここで材料在庫から数量を減らす
+                    $this->material_stock_subtract($parent_name,$process,$material_index,$processing_quantity);
                 } else {
                     // 工程番号から減らす工程在庫のカラム名を作成する
                     $reduce_stock_names = ["process" . ($process_number - 1) . "_stock"]; 
                 }
             }
         } elseif (false !== strpos($process, '103')) {
+             $material_index= "child_part_number2";
             if ($join_flag == 1) {
                 // 工程番号から減らす工程在庫のカラム名を作成する
+                
                 $reduce_stock_names = ["material_stock_2"];  
                 // 工程番号から増やす工程在庫のカラム名を作成する
                 $increase_stock_names = ["process" . $process_number . "_stock"];
+
+                //ここで材料在庫から数量を減らす
+                    $this->material_stock_subtract($parent_name,$process,$material_index,$processing_quantity);
             } else {
                 // 工程番号から増やす工程在庫のカラム名を作成する
                 $increase_stock_names = ["process" . $process_number . "_stock"];
                 if (false !== strpos($process, 'NC')) {
                     // 工程番号から減らす工程在庫のカラム名を作成する
                     $reduce_stock_names = ["material_stock_2"]; 
+
+                    //ここで材料在庫から数量を減らす
+                    $this->material_stock_subtract($parent_name,$process,$material_index,$processing_quantity);
                 } else {
                     // 工程番号から減らす工程在庫のカラム名を作成する
                     $reduce_stock_names = ["process" . ($process_number - 1) . "_stock"]; 
@@ -670,10 +683,151 @@ class LongInfoService
         }
         // DBで在庫の増減をする
         $this->_longinfoRepository->increase_stock($increase_stock_names, $processing_quantity, $parent_name, $reduce_stock_names);
+        //親品番から材料を取得して在庫DBから加工分消す
     }
 
     public function get_in_work()
     {
         return $this->_longinfoRepository->get_in_work();
+    }
+    //材料の在庫を取得してくる
+    public function material_stock($send_arr)
+    {
+        $material_stock =[];
+        foreach ($send_arr as $key => $value) {
+            //アッシー品目から子品目を取得してくる
+            $child_number = $this->_longinfoRepository->child_number_get($key,704);
+            $child_number_arr = $child_number->toArray();
+            $material_stock_quantity =[];
+            foreach ($child_number_arr as $key2 => $value2) {
+                //子品番から材料品番を取得してくる
+                $material_number = $this->_longinfoRepository->material_number_get($value2);
+                $material_stock_count = $this->_longinfoRepository->material_stock($material_number);
+                $material_stock_quantity[] = $material_stock_count;
+            }
+            $material_stock[$key] = $material_stock_quantity;
+        }
+        return  $material_stock;
+    }
+    //材料引き当てのマークを配列で作成して返す
+    public function material_mark($quantity_arr)
+    {
+        //配列から品番を取り出し品目集約を取得してくる
+        $collect_name_arr = [];
+        foreach ($quantity_arr as $parent_name => $value) {
+            $collect_name = $this->_longinfoRepository->get_collect_name($parent_name);
+            if (!in_array($collect_name, $collect_name_arr)) {
+                $collect_name_arr[] = $collect_name;
+            }
+        }
+        //品目集約で一致する品目をすべて取得してくる
+        $parent_names = [];
+        foreach ($collect_name_arr as  $collect_name) {
+            $parent_name = $this->_longinfoRepository->get_parent_name($collect_name);
+            if (is_array($parent_name)) {
+                $parent_names = array_merge($parent_names, $parent_name);
+            } else {
+                $parent_names[] = $parent_name;
+            }
+        }
+        //  長期情報がある品番のDBから数量情報を取得してくる
+        $data = [];
+        foreach ($parent_names as $name) {
+            $DB_data = $this->_longinfoRepository->db_exists($name);
+            if($DB_data)
+            {
+                $data[$name] = $DB_data;
+            } 
+        }
+        //材料の品番のと在庫を取得してくる
+        $number_used_material = [];
+        $material_stock =[];
+        foreach ($data as $name => $data_arr) {
+            //アッシー品目から子品目を取得してくる
+            $child_number = $this->_longinfoRepository->child_number_get($name,704);
+            $child_number_arr = $child_number->toArray();
+            foreach ($child_number_arr as $key2 => $value2) {
+                //子品番から材料品番を取得してくる
+                $material_number = $this->_longinfoRepository->material_number_get($value2);
+                $material_stock_count = $this->_longinfoRepository->material_for_mark($material_number);
+                $material_stock[$material_number] = (int)$material_stock_count;
+                $number_used_material[$material_number][$name] = $data_arr;
+            }
+        }
+
+
+        //引き当てマークの配列を作成
+        $material_mark_arr = []; 
+        foreach ($number_used_material as $material_name => $data_contained) {
+            $processing_names = [];
+            $data;
+            foreach ($data_contained as $processing_name => $quantity_data) {
+                $processing_names[] = $processing_name;
+                $data = $quantity_data;
+            }
+            $variable = $material_stock[$material_name];
+            $mark_arr = [];
+            foreach ($quantity_data as $key => $value) {
+                foreach ($processing_names as $index => $processing_name) {
+                    if(strpos($material_name, '102') !== false)
+                    {
+                        if($data_contained[$processing_name][$key]["target"] == 0 || $variable <= 0)
+                        {
+                            $material_mark_arr["102"][$processing_name][$key] = "";
+                            continue;
+                        }
+                        $variable = $variable - $data_contained[$processing_name][$key]["target"];
+                        if($variable > 0)
+                        {
+                            $material_mark_arr["102"][$processing_name][$key] = "●";
+                        }
+                        else {
+                            $material_mark_arr["102"][$processing_name][$key] = "○";
+                        }
+                    }elseif (strpos($material_name, '103') !== false) {
+                        if($data_contained[$processing_name][$key]["target"] == 0 || $variable <= 0)
+                        {
+                            $material_mark_arr["103"][$processing_name][$key] = "";
+                            continue;
+                        }
+                        $variable = $variable - $data_contained[$processing_name][$key]["target"];
+                        if($variable > 0)
+                        {
+                            $material_mark_arr["103"][$processing_name][$key] = "●";
+                        }
+                        else {
+                            $material_mark_arr["103"][$processing_name][$key] = "○";
+                        }
+                    }
+                    // dump($processing_name);
+                    // dump("材料在庫元: ".$material_stock[$material_name]);
+                    // dump("長期数量: ".$data_contained[$processing_name][$key]["target"]);
+                    // dump("計算結果: ".$variable);
+                }
+            }
+        }
+        // dd("end");
+        return $material_mark_arr;
+    }
+
+    /*
+        親品番と加工工程と材料のカラム名をもらって
+        もらう値
+        $parent_name 
+        $process
+        $material_index
+        
+     */
+    private function material_stock_subtract($parent_name,$process,$material_index,$processing_quantity)
+    {
+        $child_number = $this->_longinfoRepository->child_number_get($parent_name,704);
+        $child_number_arr = $child_number->toArray();
+        $material_stock_quantity =[];
+
+        //$child_number_arr[$material_index]材料を検索してくる
+        $item = $this->_longinfoRepository->material_stock_search($child_number_arr[$material_index]);
+
+        //材料を検索して数量を足す
+        $this->_longinfoRepository->material_stock_subtract($item,$processing_quantity);
     }
 }

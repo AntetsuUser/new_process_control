@@ -10,45 +10,54 @@ use App\Models\Department;
 class UpdatePrintCountCommand extends Command
 {
     /**
-     * The name and signature of the console command.
+     * コンソールコマンドの名前とシグネチャー
      *
      * @var string
      */
+    protected $signature = 'print-count:update';  // コマンド名とシグネチャー
+
     /**
-     * The console command description.
+     * コンソールコマンドの説明
      *
      * @var string
      */
+    protected $description = '月が変わった場合に印刷回数を更新';  // コマンドの説明
 
     /**
-     * Execute the console command.
+     * 新しいコマンドインスタンスを作成
+     *
+     * @return void
      */
-
-    protected $signature = 'print-count:update';
-    protected $description = 'Update print_count if month has changed';
-
     public function __construct()
     {
-        parent::__construct();
+        parent::__construct();  // 親クラスのコンストラクタを呼び出し
     }
-    //月が変わった時に印刷回数を更新する処理
+
+    /**
+     * 月が変わった時に印刷回数を更新する処理
+     *
+     * @return void
+     */
     public function handle()
     {
-        $today = Carbon::today();
-        $currentMonth = $today->month;
+        $today = Carbon::today();  // 今日の日付を取得
+        $currentMonth = $today->month;  // 現在の月を取得
 
         // データベースから前回の月を取得
         $lastRunMonth = Department::value('last_run_month');
 
         if ($lastRunMonth !== $currentMonth) {
             // 月が替わった場合
-            Department::query()->update(['print_count' => 1]);
+            Department::query()->update(['print_count' => 1]);  // 印刷回数を1にリセット
 
+            // 最後に実行した月を更新
             Department::update(['last_run_month' => $currentMonth]);
 
-            $this->info('print_count updated and last_run_month updated.');
+            // 成功メッセージを表示
+            $this->info('印刷回数が更新され、最後に実行した月が更新されました。');
         } else {
-            $this->info('Month has not changed.');
+            // 月が変更されていない場合のメッセージ
+            $this->info('月は変更されていません。');
         }
     }
 }

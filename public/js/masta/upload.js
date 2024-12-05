@@ -2,7 +2,8 @@ $(function(){
 
 })
 
-$('.delete_button').on('click', function() {
+$('.delete_button').on('click', function() 
+{
     //どこのボタンが押されたか取得
     var row_index = $(this).closest("tr").index();
     // console.log(row_index)
@@ -16,7 +17,8 @@ $('.delete_button').on('click', function() {
         dataType: 'json', // 期待するデータ形式をJSONに指定
         success: function(response) {
             console.log(response)
-            if (response.success) {
+            if (response.success) 
+            {
                 alert('削除が完了しました');
                // 成功したらページをリロード
                 location.reload();

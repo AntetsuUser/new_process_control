@@ -16,37 +16,46 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="print_title">入力履歴</div>
-        <table id="print_history_table">
-        <tr class="th_fixed">
-                <th class="filter_th" filter_btn>固有ID</th>
-                <th class="filter_th" filter_btn>品名</th>
-                <th class="filter_th" filter_btn>品番</th>
-                <th class="filter_th" filter_btn>工程</th>
-                <th class="filter_th" filter_btn>W/C</th>
-                <th class="filter_th" filter_btn>加工予定数</th>
-                <th class="filter_th" filter_btn>良品</th>
-                <th class="filter_th" filter_btn>加工不良</th>
-                <th class="filter_th" filter_btn>材料不良</th>
-                <th class="filter_th" filter_btn>納期</th>
-            </tr>
-            {{-- processed_history --}}
-            @foreach($processed_history as $data)
-                <tr class="entered_row">
-                    <td>{{$data["characteristic_id"]}}</td>
-                    <td>{{$data["item_name"]}}</td>
-                    <td>{{$data["processing_item"]}}</td>
-                    <td>{{$data["process"]}}</td>
-                    <td>{{$data["workcenter"]}}</td>
-                    <td>{{$data["processing_plan_quantity"]}}</td>
-                    <td>{{$data["good_item"]}}</td>
-                    <td>{{$data["processing_defect_item"]}}</td>
-                    <td>{{$data["material_defect_item"]}}</td>
-                    <td>{{$data["delivery_date"]}}</td>
+        <table id="print_history_table" class="filtering_table">
+            <thead>
+                <tr class="th_fixed">
+                    <th class="filter_th" filter_btn>固有ID</th>
+                    <th class="filter_th" filter_btn>品名</th>
+                    <th class="filter_th" filter_btn>品番</th>
+                    <th class="filter_th" filter_btn>工程</th>
+                    <th class="filter_th" filter_btn>W/C</th>
+                    <th class="filter_th" filter_btn>加工予定数</th>
+                    <th class="filter_th" filter_btn>良品</th>
+                    <th class="filter_th" filter_btn>加工不良</th>
+                    <th class="filter_th" filter_btn>材料不良</th>
+                    <th class="filter_th" filter_btn>納期</th>
                 </tr>
+            </thead>
+            <tbody>
+                {{-- processed_history --}}
+                @foreach($processed_history as $data)
+                    <tr class="entered_row">
+                        <td>{{$data["characteristic_id"]}}</td>
+                        <td>{{$data["item_name"]}}</td>
+                        <td>{{$data["processing_item"]}}</td>
+                        <td>{{$data["process"]}}</td>
+                        <td>{{$data["workcenter"]}}</td>
+                        <td>{{$data["processing_plan_quantity"]}}</td>
+                        <td>{{$data["good_item"]}}</td>
+                        <td>{{$data["processing_defect_item"]}}</td>
+                        <td>{{$data["material_defect_item"]}}</td>
+                        <td>{{$data["delivery_date"]}}</td>
+                    </tr>
                 @endforeach
+            </tbody>
         </table>                        
     </div>
 
 </div>
 
+@if(config('app.env') === 'production')
+    <script src="{{secure_asset('js/other_filtering.js')}}" ></script>
+@else
+    <script src="{{asset('js/other_filtering.js')}}"></script>
+@endif
 @endsection

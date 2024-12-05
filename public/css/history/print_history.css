@@ -93,8 +93,13 @@ th,td
 .filter_th
 {
   position: relative;
+  text-align: center;
+}
+.filter_position
+{
   text-align: right;
 }
+
 .filter_from_none
 {
   display: none;
@@ -121,7 +126,7 @@ th,td
 {
   display: flex;
   justify-content: space-between;
-  width: 50%;
+  width: 90%;
 }
 .filter_box {
     display: none;
@@ -178,4 +183,13 @@ th,td
     border-radius: 3px;
     cursor: pointer;
     
+}
+
+.tr_hide
+{
+  display: none;
+}
+.filter_tr_hide
+{
+  display: none;
 }

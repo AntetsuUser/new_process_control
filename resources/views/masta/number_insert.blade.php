@@ -27,7 +27,7 @@
         <p class="contents_title">品目追加</p>
     @endif 
     <div class="masta_area">
-        <form action="" method ="POST" onsubmit="return false;">
+        <form action="" method ="POST" onsubmit="return handleSubmit(this);">
             @csrf
             <div class="row  justify-content-center">
                 {{-- 親品番の品目情報 --}}
@@ -257,6 +257,20 @@ function enableBackspace(input, event) {
     input.addEventListener('input', function() {
         input.readOnly = true;
     });
+
+
+    
+}
+function handleSubmit(form) {
+    // 送信ボタンの`formaction`属性の値を取得
+    const formAction = document.activeElement.getAttribute('formaction');
+
+    // `action`属性を設定し、フォームを送信
+    form.action = formAction;
+    form.method = 'POST'; // 必要に応じて`method`を設定
+
+    form.submit(); // フォームを手動で送信
+    return false; // ページのリロードを防ぐために`false`を返す
 }
 </script>
 

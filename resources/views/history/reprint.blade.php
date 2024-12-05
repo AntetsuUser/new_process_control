@@ -17,11 +17,33 @@
 <div class="browser_back_area">
      <a href="#" onclick="window.history.back(); return false;"><img class="back_btn" src="{{ asset('img/icon/back.png') }}" alt="" style="width: 2.5%;"><span>戻る</span></a>
 </div>
+<!-- モーダルエリアここから -->
+<div id="modalArea" class="modalArea">
+    <div id="modalBg" class="modalBg"></div>
+    <div class="modalWrapper">
+        <div class="modalContents">
+            <h1 class="modal_text">この指示書を入力済みにしますか？</h1>
+            <div class="modal_btn_area">
+                <form action="{{ route('history.entered') }}"  method="POST">
+                    @csrf
+                    <input type="hidden" name="directions_id" value="{{$print_history[0]['characteristic_id']}}">
+                    <button type="submit" id="modal_submit" class="btn btn-info">実行</button>
+                </form>
+            </div>
+        </div>
+        <div id="closeModal" class="closeModal">×</div>
+    </div>
+</div>
+<!-- モーダルエリアここまで -->
 <div class="container-fluid">
     <div class="row justify-content-center">
-        <form>
-            <input type="button" value="印刷" id="print_btn" class="btn btn--orange" onclick="window.print();">
-        </form>
+        <div class="btn_area">
+            <form>
+                <input type="button" value="印刷" id="print_btn" class="btn btn--orange" onclick="window.print();">
+            </form>
+
+            <button type="button" id="id_btn" class="btn btn-info">指示書反映</button>
+        </div>
         <div id="print_main" class="print_main_area">
         @foreach($print_history as $value)
         <p class="title">作業指示書 兼 現品票</p>
@@ -129,8 +151,16 @@
         </div>
     </div>
 </div>
-
-
+<script>
+$(function () {
+    $('#id_btn').click(function(){
+        $('#modalArea').fadeIn();
+    });
+    $('#closeModal , #modalBg , #btn_close_modal').click(function(){
+        $('#modalArea').fadeOut();
+    });
+});
+</script>
 
 @if(config('app.env') === 'production')
     <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>

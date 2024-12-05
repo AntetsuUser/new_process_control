@@ -30,9 +30,11 @@
     @if(config('app.env') === 'production')
         <link href="{{ secure_asset('/css/reset.css') }}" rel="stylesheet">
         <link href="{{ secure_asset('/css/loading.css') }}" rel="stylesheet">
+        <link href="{{ secure_asset('/css/filter.css') }}" rel="stylesheet">
     @else
         <link href="{{ asset('/css/reset.css') }}" rel="stylesheet">
         <link href="{{ asset('/css/loading.css') }}" rel="stylesheet">
+        <link href="{{ asset('/css/filter.css') }}" rel="stylesheet">
     @endif
     <link href="{{ asset('/css/loading.css') }}" rel="stylesheet">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
@@ -40,6 +42,10 @@
     <link href="{{ asset('css/nav.css') }}" rel="stylesheet">
     <!-- jquery -->
     <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    {{-- フィルターアイコン --}}
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    </head>
 
     <!-- 拡大できないようにする -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -104,11 +110,35 @@
                 </div>
             </div>
         </nav>
-        
+        {{-- <div id="info_banner" class="news-banner">
+            <div class="news-banner__content">
+            <p>「ブラウザバックボタン」や「スワイプバック」などの操作はお控えいただきますようお願いします。</p>
+          </div>
+        </div> --}}
+
+
+        <input type="hidden" name="local_ip">
         <main class="py-4">
             @yield('content')
         </main>
     </div>
+    
+    {{-- @if(config('app.env') === 'production')
+        <script src="{{secure_asset('js/local_ip.js')}}" ></script>
+    @else
+        <script src="{{ asset('js/local_ip.js') }}"></script>
+
+    @endif --}}
+    <script>
+        var userAgent = navigator.userAgent;
+        var platform = navigator.platform;
+        var isIpad = !!navigator.maxTouchPoints && navigator.maxTouchPoints > 1 && platform === 'MacIntel';
+        console.log(isIpad);
+        if (!isIpad) {
+            // iPad以外の時、バナー表示のdivを非表示にする
+            $('#info_banner').show();
+        }
+    </script>
 </body>
 
 </html>

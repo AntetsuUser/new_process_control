@@ -22,6 +22,8 @@ use App\Models\PrintHistory;
 
 use App\Models\Department;
 
+use App\Models\Material_stock;
+
 
 // データベース作成に使う
 use Illuminate\Support\Facades\Schema;
@@ -335,6 +337,75 @@ class LongInfoRepository
             });
         }
     }
+    //品番から材料の品目を取得する
+    public function material_number_get($item_name)
+    {
+        $item = Number::where('processing_item', $item_name)->pluck('material_item')->first();
+        return $item;
+    }
+    //材料の品目から在庫を取得してくる
+    public function material_stock($material_number)
+    {
+        $item = Material_stock::where('material_name', $material_number)->pluck('material_stock')->first();
+        return $item;
+    }
+    public function material_for_mark($material_number)
+    {
+        $item = Material_stock::where('material_name', $material_number)->pluck('material_for_mark')->first();
+        return $item;
+    }
+    //品番から品目集約を取得してくる
+    public function get_collect_name($parent_name)
+    {
+        $item = Number::where('processing_item', $parent_name)->pluck('collect_name')->toArray();
+        return $item;
+    }
+    //品目集約から品番を取得してくる
+    public function get_parent_name($collect_name)
+    {
+        $item = Number::where('collect_name', $collect_name)->pluck('processing_item')->toArray();
+        return $item;
+    }
+    //longinfoに$nameが存在するか
+    public function db_exists($name)
+    {
+        $result = Schema::connection('second_mysql')->hasTable($name);
+        if ($result) {
+            $data = DB::connection('second_mysql')
+                ->table($name)
+                ->select('day', 'target')
+                ->get()->toArray();
+           // オブジェクトを配列に変換
+        $arrayData = [];
+        foreach ($data as $item) {
+            $arrayData[] = (array) $item; // オブジェクトを配列に変換
+        }
+        return $arrayData; // 配列を返却
+        } else {
+            return false;
+        }
+    }
 
-    
+
+    public function material_stock_search($item)
+    {
+        return $materialItem = Number::where('processing_item', $item)->pluck('material_item')->first();
+
+    }
+
+    public function material_stock_subtract($item,$quantity)
+    {
+       $material = Material_stock::where('material_name', $item)->first();
+
+        if ($material) {
+            // material_stock カラムから $quantity を引く
+            $material->material_stock -= $quantity;
+
+            // 更新された値をデータベースに保存
+            $material->save();
+        } else {
+            // 該当するレコードが見つからない場合の処理（例：エラーメッセージ）
+            echo "該当する材料が見つかりません";
+        }
+    }
 }

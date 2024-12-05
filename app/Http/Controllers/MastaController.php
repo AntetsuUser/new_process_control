@@ -12,6 +12,7 @@ use App\Services\Masta\WorkerService;
 use App\Services\Masta\StoreService;
 use App\Services\Masta\CalendarService;
 use App\Services\Masta\UploadService;
+use App\Services\Masta\TabletService;
 
 //ポストリクエストの時の
 use App\Http\Requests\Masta\NumberRequest;
@@ -22,6 +23,7 @@ use App\Http\Requests\Masta\EquipmentRequest;
 //アップロードのrequest
 use App\Http\Requests\Masta\InfoUploadRequest;
 use App\Http\Requests\Masta\ShippingUploadRequest;
+use App\Http\Requests\Masta\MaterialUploadRequest;
 
 //Excelのデータを操作するときに使用
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -40,11 +42,13 @@ class MastaController extends Controller
     protected $_numberService;
     protected $_storeService;
     protected $_uploadService;
+    protected $_tabletService;
+    
 
     public function __construct(WorkerService $workerService, EquipmentService $equipmentService, 
                                 CalendarService $calendarService,NumberService $numberService, 
                                 StoreService $storeService,MastaCommonService $mastacommonService,
-                                UploadService $uploadService)
+                                UploadService $uploadService,TabletService $tabletService)
     {
         //
         $this->_mastacommonService = $mastacommonService;
@@ -56,12 +60,13 @@ class MastaController extends Controller
         $this->_storeService = $storeService;
 
         $this->_uploadService = $uploadService;
+        $this->_tabletService = $tabletService;
 
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
     // マスタ管理画面
     ///////////////////////////////////////////////////////////////////////////////////////////
-    public function masta()
+    public function masta(Request $request)
     {
         return view('masta/masta');
     }
@@ -153,6 +158,15 @@ class MastaController extends Controller
             $numbers_arr['line'] = $numbers_data['line_number'][$index];
             //結合判定
             $numbers_arr['join_flag'] = $numbers_data['join_flag'];
+
+            //材料在庫DBに材料品目の登録確認をする
+            if (!is_null($numbers_data['resource_item'][$index])) {
+                // nullじゃない時に実行
+                $material_item = $numbers_data['resource_item'][$index];
+                //材料登録
+                $this->_numberService->material_entry($material_item);
+            }
+
             //子品番の登録
             if ($index == 0 && $numbers_data['name'][1] != '' && $numbers_data['name'][2]!= '') {
                 $numbers_arr['child_part_number1'] = $numbers_data['name'][1];
@@ -219,9 +233,8 @@ class MastaController extends Controller
                 }
             }
         }
-        //data_jsonとlonginfosに品番を追加
+        // //data_jsonとlonginfosに品番を追加
         $this->_numberService->longinfos_create($process_json);
-
         return redirect()->route('masta.number');
     }
 
@@ -539,13 +552,15 @@ class MastaController extends Controller
         $longinfo_log = $this->_uploadService->get_uplog();
         //出荷明細のログを取得
         $shipment_log = $this->_uploadService->get_uplog_shipment();
+        //材料入荷情報のログを取得
+        $material_log = $this->_uploadService->get_uplog_material();
         //アップロードのログ
         $up_log = $this->_uploadService->get_Additional_information();
         //親品番取得
         $parent_items = $this->_uploadService->get_parent_items();
         // dd($parent_items);
         // `with` メソッドを使って追加のデータをビューに渡す
-        return view('masta.upload', compact('longinfo_log','shipment_log','parent_items','up_log'));
+        return view('masta.upload', compact('longinfo_log','shipment_log','parent_items','up_log','material_log'));
     }
     //長期情報アップロード
     public function longinfo_upload(InfoUploadRequest $request)
@@ -582,14 +597,41 @@ class MastaController extends Controller
         //アップロードされたファイルを履歴DBに入れる
         $id = $this->_uploadService->shipping_upload_log($filename,$category,$start_date,$end_date);
         //Excelファイルのデータをデータベースに登録する
-        $this->_uploadService->shipping_data_upload($filename,$uploadfile,$start_date,$end_date,$id);
+        $upload_flag = $this->_uploadService->shipping_data_upload($filename,$uploadfile,$start_date,$end_date,$id);
+        $a_order_number = '';
+        if($upload_flag == "true")
+        {
+            //アップロード成功
+            $message = "アップロードが完了しました。出荷確認ボタンを押して反映してください";
+            $type  = 'success';
+            $a_order_number = '';
+        }
+        else if($upload_flag == "no_shipment_data")
+        {
+            //注文データに被りがあるとき
+            $message = "アップロードするデータがありません。ファイル、日付けを確認してください";
+            $type  = 'danger';
+            $a_order_number = '';
+            //ファイル履歴を削除する
+            $this->_uploadService->shipping_upload_log_delete($id);
+        }
+        else
+        {
+            //注文データに被りがあるとき
+            $message = "アップロードしたデータに、購買発注番号が重複している部分があります。アップロードファイルをご確認ください。";
+            $type  = 'danger';
+            $a_order_number = $upload_flag;
+            $this->_uploadService->shipping_upload_log_delete($id);
+        }
 
         return redirect()->route('masta.upload')->with([
             'tab' => $tab,
-            'message_shipment' => 'アップロードが完了しました。出荷確認ボタンを押して反映してください',
-            'message_type' => 'success' // メッセージの種類を指定（成功、エラーなど）
+            'message_shipment' => $message,
+            'message_type' => $type, // メッセージの種類を指定（成功、エラーなど）
+            'order_number' => $a_order_number
         ]);
     }
+
     //出荷情報確認画面
     public function clearing_application()
     {
@@ -613,8 +655,6 @@ class MastaController extends Controller
             $ordering_quantity = $data["ordering_quantity"];
             //削除してる
             $return = $this->_uploadService->shipment_info_application($id,$item_code,$ordering_quantity);
-            dump($data["item_code"]);
-            dump($data["ordering_quantity"]);
             if(!$return)
             {
                 $application_flag = false;
@@ -635,13 +675,67 @@ class MastaController extends Controller
             'message_type' => $message_type  // メッセージの種類を指定（成功、エラーなど）
         ]);
     }
-
-    public function application_history(Request $request)
+    ///////////////////////////////
+    //材料台帳
+    ///////////////////////////////
+    public function material_upload(MaterialUploadRequest $request)
     {
+        $tab = "material";
+        $category = "材料入荷情報";
 
-        $history_id = $request->shipment_log_id;
-        $history_arr = $this->_uploadService->get_history($history_id);
-        return view('masta.application_history', compact('history_arr'));
+        $uploadfile = $request->material_file->path();
+        $filename = $request->file('material_file');
+        //開始日
+        $start_date = $request->input('arrival_date');
+
+        $id = $this->_uploadService->material_upload_log($filename,$category,$start_date);
+        //Excelファイルのデータをデータベースに登録する
+        $upload_flag = $this->_uploadService->material_data_upload($filename,$uploadfile,$start_date,$id);
+        if($upload_flag == "true")
+        {
+            //アップロード成功
+            $message = "アップロードが完了しました。詳細ボタンで情報を確認できます。";
+            $type  = 'success';
+            $a_order_number = '';
+        }
+        return redirect()->route('masta.upload')->with([
+            'tab' => $tab,
+            'message_shipment' => $message,
+            'message_type' => $type, // メッセージの種類を指定（成功、エラーなど）
+            'order_number' => $a_order_number
+        ]);
+    }
+
+    // ExcelVBAからデータを受け取ってDBに保存する場合
+    public function receive_material_from_vba(Request $request)
+    {
+        $tab = "material";
+        $category = "材料入荷情報";
+
+        // VBAからPOSTされたJSONデータを取得
+        $data = $request->json()->all();
+        if (empty($data)) {
+            return response()->json(['error' => '工程管理システムにデータが送信できませんでした'], 400);
+        }
+
+        //開始日
+        $start_date = $request->input('arrival_date');
+        // アップロード履歴をログDBに保存
+        $id = $this->_uploadService->material_upload_log($filename,$category,$start_date);
+        // VBAからPOSTされた値でデータベース登録
+        $upload_flag = $this->_uploadService->receive_material_from_vba_insert($data,$start_date,$id);
+
+        return response()->json(['message' => 'Data processed successfully']);
+        
+    }
+
+
+    //履歴
+    public function material_up_history(Request $request)
+    {
+        $history_id = $request->material_log_id;
+        $history_arr = $this->_uploadService->get_history_material($history_id);
+        return view('masta.material_up_history', compact('history_arr'));
     }
     ///////////////////////////////
     //追加依頼
@@ -669,6 +763,35 @@ class MastaController extends Controller
             'message_adding' => $message,
             'message_type' => $message_type  // メッセージの種類を指定（成功、エラーなど）
         ]);
+    }
+
+    public function application_history(Request $request)
+    {
+        //出荷情報のDBから値を取得してくる
+        $shipping_data = $this->_uploadService->get_shipping_data();
+        
+        // dd($shipping_data);
+        return view('masta.clearing_application',compact('shipping_data'));
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // タブレット一覧
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    public function tablet_post(Request $request)
+    {
+        dd($request);
+        $ip= $request->local_ip;
+
+
+    }
+
+    public function tablet(Request $request)
+    {
+
+        $masta_data = $this->_tabletService->findById();
+        $factory = $this->_mastacommonService->factory_get();
+        return view('masta.tablet', compact('masta_data','factory'));
     }
 }
 

@@ -25,5 +25,6 @@ class ShippingInfo extends Model
         'note',
         'application_flag',
         'history_id',
+        'order_number',
     ];
 }

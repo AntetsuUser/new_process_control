@@ -12,6 +12,6 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        'masta/vba_material_upload', // このルートをCSRF保護から除外
     ];
 }

@@ -27,6 +27,10 @@ use App\Models\ShippingInfo;
 
 use App\Models\Additional_information;
 
+use App\Models\Material_stock;
+
+use App\Models\Material_arrival;
+
 
 class UploadRepository
 {
@@ -42,7 +46,14 @@ class UploadRepository
         //最新のファイル情報から取得する
         return Processing_history::where('category', '出荷明細') ->orderBy('id', 'desc')->get()->toArray();
     }
-    //
+
+    ////アップロード表示の時にcategoryが材料入荷情報のやつだけ取得する
+     public function get_uplog_material()
+    {
+        //最新のファイル情報から取得する
+        return Processing_history::where('category', '材料入荷情報') ->orderBy('id', 'desc')->get()->toArray();
+    }
+
     public function get_Additional_information()
     {
         return Additional_information::orderBy('id', 'desc')->get()->toArray();
@@ -99,6 +110,11 @@ class UploadRepository
         
         return $result->id;
 
+    }
+    public function shipping_upload_log_delete($id)
+    {
+        $processingHistory = Processing_history::find($id);
+        $processingHistory->delete();
     }
     
 
@@ -268,10 +284,16 @@ class UploadRepository
             Log::error('Failed to insert shipment data: ' . $e->getMessage());
         }
     }
+
     //処理対象の出荷情報を取得する
     public function get_shipping_data()
     {
         return ShippingInfo::where('application_flag', "false")->get()->toArray();
+    }
+    // 全ての出荷情報を取得する
+    public function get_all_shipping_data()
+    {
+        return ShippingInfo::all()->toArray();
     }
 
     // 処理対象の出荷情報を在庫に反映させる
@@ -319,6 +341,13 @@ class UploadRepository
     {
         $history_arr = ShippingInfo::where('history_id', $history_id)
                             ->where('application_flag', "true")
+                            ->get()->toArray();
+        return $history_arr ;
+    }   
+    public function get_history_material($history_id)
+    {
+        // dd($history_id);
+        $history_arr = Material_arrival::where('history_id', $history_id)
                             ->get()->toArray();
         return $history_arr ;
     }   
@@ -374,6 +403,19 @@ class UploadRepository
     {
         $days = Long_term_date::pluck('day')->toArray();
         return $days;
+    }
+
+
+    public function get_material_items_name()
+    {
+        $items = Material_stock::pluck('material_name')->toArray();
+        return $items;
+    }
+
+    public function arrival_signup($material_arr){
+        foreach ($material_arr as $value) {
+            Material_arrival::create($value);
+        }
     }
 
     public function quantity_addition($item,$delivery_date,$quantity)

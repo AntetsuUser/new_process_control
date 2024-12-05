@@ -42,7 +42,7 @@
             }
             $('[name="process_number"]').val(process_number)
             if (processing_value === processing_sum) {
-                console.log("正しい");
+
 
                 $modal.addClass('is-active');
 

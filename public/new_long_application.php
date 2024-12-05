@@ -242,5 +242,30 @@ try {
 $pdo_source = null;
 $pdo_dest = null;
 $pdo_process = null;
+$pdo_stock = null;
+
+
+
+//材料在庫のデータを更新する
+$pdo_stock = new PDO("mysql:host=$host;dbname=$process_DB", $username, $password);
+$pdo_stock->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+// SQLクエリ：material_for_markカラムをmaterial_nameカラムの値で更新
+$sql = "UPDATE material_stock SET material_for_mark = material_name";
+
+// クエリの実行
+try {
+    // SQLの実行
+    $stmt = $pdo_stock->prepare($sql);
+    $stmt->execute();
+
+    echo "レコードの更新に成功しました";
+} catch (PDOException $e) {
+    // エラーが発生した場合の処理
+    echo "エラー: " . $e->getMessage();
+}
+
+// データベース接続を閉じる
+$pdo_stock = null;
 
 ?>

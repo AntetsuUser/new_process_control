@@ -17,6 +17,8 @@ use App\Models\Equipment;
 use App\Models\Number;
 //Processing_history
 use App\Models\Processing_history;
+//tablets
+use App\Models\tablets;
 
 class MastaCommonRepositort
 {

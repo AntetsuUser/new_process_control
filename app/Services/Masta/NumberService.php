@@ -133,4 +133,16 @@ class NumberService
             } 
         } 
     }
+    //材料在庫に登録
+    public function material_entry($material_item)
+    {
+        $data = [
+            'material_name' => $material_item,
+            'material_stock' => 0,
+            'material_for_mark' => 0,
+            'parent_name' => '',
+            'using_name' => '',
+        ];
+        $this->_numberRepository->material_entry($data);
+    }
 }

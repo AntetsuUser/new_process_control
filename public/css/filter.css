@@ -1,0 +1,17 @@
+.tr_hide
+{
+  display: none;
+}
+.filter_tr_hide
+{
+  display: none;
+}
+/* filterbutton */
+/* filterbutton */
+.filter_button
+{
+    background-color: white;
+    padding: 5px;
+    border-radius: 3px;
+    cursor: pointer;
+}

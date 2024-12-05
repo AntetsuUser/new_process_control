@@ -20,6 +20,7 @@
             <table class="shipping_data">
                 <thead>
                     <tr>
+                        <th>購買発注番号</th>
                         <th>品目コード</th>
                         <th>品目名称</th>
                         <th>要求納期</th>
@@ -31,6 +32,7 @@
                     <?php $count = 0; ?>
                     @foreach ($history_arr as $value)
                         <tr>
+                            <td>{{ $value["order_number"] }}</td>
                             <td>{{ $value["item_code"] }}</td>
                             <td>{{ $value["item_name"] }}</td>
                             <td>{{ $value["delivery_date"] }}</td>

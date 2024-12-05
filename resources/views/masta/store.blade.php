@@ -21,7 +21,7 @@
         <div class="table_area">
             <a href="{{ route('masta.store_edit') }}" class="btn btn-primary main_btn">ストア追加</a>
             <div class="table_div">
-                <table id="workersTable">
+                <table id="workersTable" class="filtering_table">
                     <thead>
                         <tr>
                             <th class="edit_btn_area"></th>
@@ -50,8 +50,10 @@
 
 @if(config('app.env') === 'production')
     {{-- <script src="{{secure_asset('js/masta/worker.js')}}?time="></script> --}}
+    <script src="{{secure_asset('js/other_filtering.js')}}" ></script>
 @else
     {{-- <script src="{{asset('js/masta/worker.js')}}"></script> --}}
+    <script src="{{asset('js/other_filtering.js')}}" ></script>
 @endif
 
 @endsection
