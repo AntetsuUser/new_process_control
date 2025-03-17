@@ -49,6 +49,13 @@
             @endforeach
         </div>
     </div>
+    {{-- 長期順と納期順の変更ボタン --}}
+    <div class="sample">
+        <input type="radio" name="s2" id="on" value="1" checked="">
+        <label for="on" class="switch-on">長期順</label>
+        <input type="radio" name="s2" id="off" value="0">
+        <label for="off" class="switch-off">納期順</label>
+    </div>
 
    <button class="button_4" id="update_button">更新</button>
 

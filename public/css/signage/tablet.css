@@ -72,6 +72,40 @@
 body {
   overflow: hidden;
 }
+/* 長期順、納期順変更ラジオボタン */
+.sample input {
+	display: none;
+}
+.sample label{
+	display: block;
+	float: left;
+	cursor: pointer;
+	width: 60px;
+	margin: 0;
+	padding: 10px;
+	background: #bdc3c7;
+	color: #869198;
+	font-size: 16px;
+	text-align: center;
+	line-height: 1;
+	transition: .2s;
+}
+.sample label:first-of-type{
+	border-radius: 3px 0 0 3px;
+}
+.sample label:last-of-type{
+	border-radius: 0 3px 3px 0;
+}
+.sample input[type="radio"]:checked + .switch-on {
+	background-color: #a1b91d;
+	color: #fff;
+}
+.sample input[type="radio"]:checked + .switch-off {
+	background-color: #e67168;
+	color: #fff;
+}
+
+
 
 /* テーブル */
 .table_area
