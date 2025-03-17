@@ -11,7 +11,7 @@
 
 @section('content')
 {{-- テストですよ --}}
-
+<div>自動更新テスト</div>
 <div class="aaa"></div>
 <div class="container">
     <div class="row justify-content-center main_box">
