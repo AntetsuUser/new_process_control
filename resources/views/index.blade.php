@@ -10,6 +10,7 @@
 @endsection
 
 @section('content')
+{{-- テストですよ --}}
 
 <div class="aaa"></div>
 <div class="container">
