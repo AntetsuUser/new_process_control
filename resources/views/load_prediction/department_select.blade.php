@@ -3,8 +3,12 @@
 @section('css')
 @if(config('app.env') === 'production')
     <link href="{{ secure_asset('/css/index.css') }}" rel="stylesheet">
+    <link href="{{ secure_asset('/css/load_prediction/load_prediction_graph.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charts.css/dist/charts.min.css">
 @else
     <link href="{{ asset('/css/index.css') }}" rel="stylesheet">
+    <link href="{{ asset('/css/load_prediction/load_prediction_graph.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charts.css/dist/charts.min.css">
 @endif
 @endsection
 

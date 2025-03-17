@@ -7,6 +7,9 @@ use App\Services\LongInfo\LongInfoService;
 use Illuminate\Http\Request;
 use App\Services\Signage\SignageService;
 use App\Services\LoadPrediction\LoadPredictionService;
+use Illuminate\Support\Facades\Auth;
+//Logコントローラー
+use App\Http\Controllers\LogController;
 
 class SignageController extends Controller
 {
@@ -38,6 +41,9 @@ class SignageController extends Controller
             $scene ="main";
             $department = $this->_loadpredictionService->department_get();
             //製造課選択のviewに返す//signage.department
+            $user = Auth::user();
+            $logController = new LogController();
+            $logController->page_log($user->name, 'モニター製造課選択'); 
             return view('signage.department',compact('scene','department'));
         }
         //ipを投げて表示する品目を取得してくる
@@ -59,7 +65,9 @@ class SignageController extends Controller
         $material_stock = $direction_date[9];
         // dd($items,$material_mark);
         // dd($items,$process_names,$info_day);
-
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, 'モニター'); 
         return view('signage.main', compact('item_Array','info_day','process_names','items','display_arr','ip_address','dateArray','weekdayArray','production','display_stock_arr','material_mark','material_stock'));
     }
 
@@ -77,6 +85,9 @@ class SignageController extends Controller
             $scene ="tablet";
             $department = $this->_loadpredictionService->department_get();
             //製造課選択のviewに返す//signage.department
+            $user = Auth::user();
+            $logController = new LogController();
+            $logController->page_log($user->name, 'タブレット製造課選択'); 
             return view('signage.department',compact('scene','department'));
         }
         //ipを投げて表示する品目を取得してくる
@@ -100,7 +111,9 @@ class SignageController extends Controller
         $date = $this->_signageService->get_date();
         $dateArray= $direction_date[5];
         $weekdayArray= $direction_date[6];
-
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, 'タブレット進捗確認'); 
         return view('signage.tablet',compact('item_names','process_arr','dateArray','weekdayArray','production','date' ,'work_arr'));
     }
 
@@ -151,7 +164,7 @@ class SignageController extends Controller
         $sorted_keys = array_keys($info_data);
 
         //在庫の引き当てマーク配列を作成する材料の在庫数
-        $material_mark = $this->_signageService->tablet_material_mar($sorted_keys);
+        $material_mark = $this->_signageService->tablet_material_mar($sorted_keys,$production);
         $material_mark_arr = $material_mark[0];
         $material_stock = $material_mark[1];
         //品番と工程で在庫を取得してくる

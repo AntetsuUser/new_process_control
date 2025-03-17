@@ -94,7 +94,7 @@ $(document).ready(function() {
         // 3分後に自動スクロールを再開するためのタイマーをセット
         scrollTimeout = setTimeout(function() {
             isAutoScrolling = true; // 自動スクロールを再開
-        }, 100000); 
+        }, 1000000000); 
     });
 
     // 60msごとにスクロール処理を実行
@@ -216,11 +216,15 @@ function weeks_end_line(border_color) {
             // th_id が「遅延」、undefined、null でない場合の処理
             // Dateに変換する
             let date = new Date(th_id);
-            
+            date.setHours(0, 0, 0, 0); 
             // 週が変わったか判定
             let weekChanged = weeks_judge(date, prev_value);
             // 月が変わったか判定
             let monthChanged = month_judge(date, prev_value);
+
+            console.log("週" + weekChanged);
+
+            console.log("月" + monthChanged);
             
             // 週と月が両方変わった場合は、月の方を優先する
             if (monthChanged) {
@@ -292,45 +296,31 @@ function weeks_end_line(border_color) {
             // prev_value を更新
             prev_value = date;
         }
+        
     });
 }
 
+// 週の判定
 function weeks_judge(date, prev_value) {
-    // prev_valueが定義されている場合のみ比較
-    if (prev_value !== undefined && prev_value !== null) {
-        // 週の開始日（月曜日）を計算
+    if (prev_value) {
         let getStartOfWeek = (date) => {
-            let day = date.getDay();
-            let diff = date.getDate() - day + (day == 0 ? -6 : 1); // 週の開始日（月曜日）
-            const startOfWeek = new Date(date.setDate(diff));
-            startOfWeek.setHours(0, 0, 0, 0); // 時間を0にリセット
-            return startOfWeek;
+            let newDate = new Date(date);
+            let day = newDate.getDay();
+            let diff = newDate.getDate() - day + (day == 0 ? -6 : 1); // 月曜日基準
+            newDate.setDate(diff);
+            newDate.setHours(0, 0, 0, 0);
+            return newDate;
         };
 
-        const prev_week_start = getStartOfWeek(prev_value);
-        const current_week_start = getStartOfWeek(date);
-        
-        // 週が変わったかを比較
-        return prev_week_start.getTime() !== current_week_start.getTime();
-    } else {
-        // 初回の処理（prev_valueがnullまたはundefinedの場合）
-        return false; // 最初は変わったとは判定しない
+        return getStartOfWeek(date).getTime() !== getStartOfWeek(prev_value).getTime();
     }
+    return false;
 }
 
+// 月の判定
 function month_judge(date, prev_value) {
-    // prev_valueが定義されている場合のみ比較
-    if (prev_value !== undefined && prev_value !== null) {
-        // 現在の月と前の月を比較
-        const prev_month = prev_value.getMonth();  // 前月
-        const current_month = date.getMonth();    // 現在月
-        
-        // 月が変わったかを比較
-        return prev_month !== current_month;
-    } else {
-        // 初回の処理（prev_valueがnullまたはundefinedの場合）
-        return false; // 最初は変わったとは判定しない
+    if (prev_value) {
+        return date.getMonth() !== prev_value.getMonth();
     }
+    return false;
 }
-
-

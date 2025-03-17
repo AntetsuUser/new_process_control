@@ -93,6 +93,45 @@
     var logRoute = "{{ route('log.main') }}";
 
 </script>
+{{-- aタグのどこが押されたかをリンクで送る --}}
+<script>
+    $(document).ready(function () {
+        $('.ajax-link').on('click', function (e) {
+            e.preventDefault(); // デフォルトの遷移を停止
+
+            let link = $(this).attr('href'); // クリックされたリンクのhrefを取得
+             let clickedText = $(this).find('p').text();
+
+            // CSRFトークンをヘッダーに設定
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            // AJAXでリンク情報を送信
+            $.ajax({
+                url: "{{ route('log.atag') }}", // コントローラーのエンドポイント
+                method: 'POST',
+                data: {
+                    link: link, // クリックされたリンク先のURL
+                    text: clickedText // クリックされた要素の親のidを送信（任意）
+                },
+                success: function (response) {
+                    console.log('レスポンス:', response);
+
+                    // レスポンスを確認後に遷移
+                    window.location.href = link; // 元のリンク先に遷移
+                },
+                error: function (error) {
+                    console.error('エラー:', error);
+                    alert('エラーが発生しました。');
+                }
+            });
+        });
+    });
+</script>
+
 @if(config('app.env') === 'production')
     <script src="{{secure_asset('js/monitor.js')}}<?php echo '?key='.rand();?>"></script>
     <script src="{{secure_asset('js/log.js')}}<?php echo '?key='.rand();?>"></script>

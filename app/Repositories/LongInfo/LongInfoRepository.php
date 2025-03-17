@@ -24,6 +24,9 @@ use App\Models\Department;
 
 use App\Models\Material_stock;
 
+use App\Models\Shipment_count;
+
+
 
 // データベース作成に使う
 use Illuminate\Support\Facades\Schema;
@@ -45,7 +48,7 @@ class LongInfoRepository
     public function line_get_process($line_numbers)
     {
         //配列で取得して返す
-        return Process::where('store','REGEXP', "(^|,)$line_numbers(,|$)")->select('processing_item','process','process_number','processing_time','lot')
+        return Process::where('store','REGEXP', "(^|,)$line_numbers(,|$)")->select('processing_item','process','process_number','processing_time','lot','store')
                     ->get()
                     ->toArray();
     }   
@@ -58,6 +61,19 @@ class LongInfoRepository
     public function worker_name_get($id)
     {
         return Worker::where('id',$id)->value('name');
+    }
+
+    public function child_number_acquisition($item_name,$column_name)
+    {
+        return Number::where('processing_item', $item_name)->select($column_name)->value($column_name);
+    }
+
+    public function acquisition_process_information($item,$process_number)
+    {
+        return Process::where('processing_item', $item)
+        ->where('process_number', $process_number)
+        ->first(['store', 'processing_time'])
+        ->toArray();
     }
 
 
@@ -105,6 +121,19 @@ class LongInfoRepository
             return [];
         }
     }
+    //在庫データベースに品番で検索して値を取得してくる
+    public function get_complete_stock($item_name)
+    {
+        $stock = Shipment_count::where('item_name', $item_name)->first();
+
+        if ($stock) {
+            return $stock->toArray();
+        } else {
+            return [];
+        }
+    }
+
+
     public function single_get_stock($item_name,$process)
     {
         $stock = Stock::select('material_stock_1','material_stock_2',$process)->where('processing_item', $item_name)->first();
@@ -336,6 +365,46 @@ class LongInfoRepository
 
             });
         }
+    }
+    //親品番から子品番を取得してくる
+    public function single_items_get($item_name)
+    {
+        $single_items = Number::where('processing_item', $item_name)
+                        ->select('child_part_number1','child_part_number2')
+                        ->first()->toArray();
+        
+        return $single_items;
+    }
+
+    public function creation_count($parent_name,$processing_quantity)
+    {
+            // 該当するレコードを取得
+            $shipment = Shipment_count::where('item_name', $parent_name)->first();
+
+            if ($shipment) {
+                // made_count に processing_quantity を加算
+                $shipment->made_count += $processing_quantity;
+
+                // 更新を保存
+                $shipment->save();
+            }
+    }
+
+
+    public function get_Parent_Item_Number($item_name)
+    {
+        $flag = true; // 初期値として0を設定
+        //親品番、子品番1,2、品目名称、結合flagを取得する
+        $processingItem = Number::where('child_part_number1', $item_name)
+                        ->orWhere('child_part_number2', $item_name)
+                        ->select('processing_item')
+                        ->get()
+                        ->pluck('processing_item')->toArray(); 
+        if (empty($processingItem)) {
+           $processingItem = Number::where('processing_item', $item_name)->select('processing_item','child_part_number1','child_part_number2','item_name','join_flag')->get()->toArray();
+           $flag = false;
+        }
+        return $processingItem;
     }
     //品番から材料の品目を取得する
     public function material_number_get($item_name)

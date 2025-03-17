@@ -14,7 +14,7 @@ class Material_stock extends Model
         'material_name',
         'material_stock',
         'material_for_mark',
-        'parent_name',
+        'before',
         'using_name',
     ];
 }

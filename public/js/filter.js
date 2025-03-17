@@ -3,6 +3,7 @@ var selectedFilters = {};
 $(function() {
     // ページが読み込まれたときに初期状態を設定
     window.onload = toggleRows;
+     toggleRows()
     // Font Awesomeのアイコンを設定
     var $icon = $('<i class="fa fa-filter filter_button"></i>'); 
     $('#print_history_table thead tr').first().find('th').slice(1).each(function() {

@@ -66,3 +66,42 @@
 {
   display: none;
 }
+
+/* 選択画面 */
+.select_main
+{
+    width: 100%;
+    text-align: center;
+}
+.from_area
+{
+    padding: 2%;
+    background-color: #ADD8E6;
+    width: 80%;
+    margin: 10% auto;
+    border-radius: 10px;
+}
+.from_title
+{
+  font-size: 25px;
+  font-weight: bold;
+  text-align: left;
+  margin-left: 21%;
+
+}
+#division
+{
+  width: 50%;
+  height: 50px;
+  font-size: 25px;
+  background-color: #fff;
+}
+.submit_btn
+{
+  width: 8%;
+  height: 50px;
+  background-color: #8BA7BD;
+  border: 1px solid #8BA7BD;
+  border-radius: 3px;
+
+}

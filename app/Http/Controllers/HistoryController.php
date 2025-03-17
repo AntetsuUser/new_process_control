@@ -8,6 +8,9 @@ use App\Services\History\PrintHistoryService;
 use App\Services\History\ProcessedHistoryService;
 // Logを残すのに必要
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+//Logコントローラー
+use App\Http\Controllers\LogController;
 
 class HistoryController extends Controller
 {
@@ -33,7 +36,10 @@ class HistoryController extends Controller
     public function print()
     {
         $print_history = $this->_printHistoyService->print_history_get();  // 印刷履歴を取得
-        Log::channel('process_log')->info('印刷画面表示');  // ログに情報を記録
+        Log::channel('process_log')->info('印刷履歴画面表示');  // ログに情報を記録
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, '印刷履歴'); 
         return view('history.print_history',compact('print_history'));  // 印刷履歴画面を表示
     }
 
@@ -43,7 +49,10 @@ class HistoryController extends Controller
     public function processing()
     {
         $processed_history = $this->_processedHistoryService->processed_history_get();  // 入力履歴を取得
-        Log::channel('process_log')->info('入力画面表示');  // ログに情報を記録
+        Log::channel('process_log')->info('入力履歴画面表示');  // ログに情報を記録
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, '入力履歴'); 
         return view('history.processing_history',compact('processed_history'));  // 入力履歴画面を表示
     }
 
@@ -58,6 +67,9 @@ class HistoryController extends Controller
 
         $print_history = $this->_printHistoyService->reprint($id);  // 指示書IDに基づいて再印刷情報を取得
         Log::channel('process_log')->info('指示書再表示');  // ログに情報を記録
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, '指示書再表示'); 
         return view('history.reprint',compact('print_history'));  // 再印刷画面を表示
     }
 

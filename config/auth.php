@@ -38,7 +38,7 @@ return [
     'guards' => [
         'web' => [
             'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'user_info', // ここを'users'から'user_info'に変更
         ],
     ],
 
@@ -60,15 +60,10 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        'user_info' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => App\Models\User_info::class, // User_infoモデルを指定
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
     ],
 
     /*
@@ -97,6 +92,10 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+    ],
+    
+    'remember' => [
+        'lifetime' => env('REMEMBER_LIFETIME', 525600), // .envで設定、デフォルトは1年
     ],
 
     /*

@@ -71,7 +71,18 @@
 {
     border-bottom: solid 2px #000 !important; 
 }
+/* #info_table > tbody > tr:nth-child(6) > td:nth-child(12)
+{
+  background-color: #ffff00;
+} */
 
+/* #info_table > tbody > tr:nth-child(6) > td:nth-child(11),
+#info_table > tbody > tr:nth-child(5) > td:nth-child(11),
+#info_table > tbody > tr:nth-child(4) > td:nth-child(12),
+#info_table > tbody > tr:nth-child(3) > td:nth-child(12)
+{
+  background-color: #ffff00;
+} */
 
 .col1
 {

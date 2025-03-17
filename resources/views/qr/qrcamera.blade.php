@@ -9,6 +9,8 @@
         <link href="{{ asset('/css/qr/qr.css') }}" rel="stylesheet">
     @endif
     <!-- JavaScript -->
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     <a href="{{ url('/') }}">
@@ -54,6 +56,10 @@
             </div>
         </div>
     </div>
+    <script> 
+        var log_camera_url = "{{ route('log.camera') }}" 
+    </script>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     @if(config('app.env') === 'production')
         <script src=" {{secure_asset('./js/qr/jsQR.js')}}"></script>

@@ -270,6 +270,85 @@ class UploadRepository
     {
         return Stock::select('processing_item')->get()->toArray();
     }
+    //
+    public function temp_confirmation($item_name)
+    {
+        //temp_longinfoに品番tableがあるか確認する
+        //存在する場合はtrueを存在しない場合はfalseを返す
+        try {
+        $exists = \DB::connection('third_mysql')
+            ->table($item_name)
+            ->exists();
+
+            return $exists;
+        } catch (\Illuminate\Database\QueryException $e) {
+            // エラーが発生した場合、テーブルが存在しない可能性が高い
+            if ($e->getCode() == '42S02') {
+                // テーブルが見つからない場合はfalseを返す
+                return false;
+            }
+            
+            // 他のエラーが発生した場合は例外を再スロー
+            throw $e;
+        }
+    }
+    public function copyFirstTable($item_name)
+    {
+        // third_mysql データベース内で最初のテーブル名を取得
+        $firstTable = \DB::connection('third_mysql')
+            ->table('information_schema.tables')
+            ->where('table_schema', 'temp_longinfo') // temp_longinfo データベースを指定
+            ->orderBy('table_name', 'asc') // 最初のテーブルを取得
+            ->value('table_name');
+        
+        if (!$firstTable) {
+            // 最初のテーブルが見つからなかった場合、エラーハンドリング
+            throw new \Exception('最初のテーブルが見つかりませんでした');
+        }
+
+        // 最初のテーブルの構造をコピーして新しいテーブルを作成
+        $createTableQuery = "CREATE TABLE `$item_name` LIKE `$firstTable`";
+        \DB::connection('third_mysql')->statement($createTableQuery);
+        // 最初のテーブルのデータを新しいテーブルにコピー
+        $insertDataQuery = "INSERT INTO `$item_name` SELECT * FROM `$firstTable`";
+        \DB::connection('third_mysql')->statement($insertDataQuery);
+
+        return true;
+    }
+
+    public function updateColumnsToZero($item_name)
+    {
+        // 対象テーブルのカラム名を取得（'day' と 'weekdays' を除外）
+        $columns = \DB::connection('third_mysql')
+            ->table('information_schema.columns')
+            ->where('table_schema', 'temp_longinfo') // temp_longinfo データベースを指定
+            ->where('table_name', $item_name) // 対象テーブルを指定
+            ->whereNotIn('column_name', ['id','day', 'weekdays']) // 'day' と 'weekdays' を除外
+            ->pluck('column_name'); // カラム名のリストを取得
+
+        if ($columns->isEmpty()) {
+            throw new \Exception('更新するカラムがありません');
+        }
+
+        // 更新クエリを動的に作成
+        $updateQuery = "UPDATE `$item_name` SET ";
+
+        // カラム名をループして、'day' と 'weekdays' 以外を0に設定
+        $setClauses = [];
+        foreach ($columns as $column) {
+            $setClauses[] = "`$column` = 0"; // 各カラムの値を0に設定
+        }
+
+        // SET句を結合して最終的なUPDATEクエリを作成
+        $updateQuery .= implode(", ", $setClauses);
+
+        // クエリ実行
+        \DB::connection('third_mysql')->statement($updateQuery);
+
+        return true;
+    }
+
+
 
     //処理対象をDBに保存する
     public function insert_shipment_data($data)
@@ -403,6 +482,10 @@ class UploadRepository
     {
         $days = Long_term_date::pluck('day')->toArray();
         return $days;
+    }
+    public function material_item($item)
+    {
+        return Number::where('processing_item', $item)->pluck('material_item')->first();
     }
 
 

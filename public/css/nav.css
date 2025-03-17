@@ -64,3 +64,41 @@
     transform: translateX(-100%);
   }
 }
+
+.username{
+    font-size: 20px;
+    color: white;
+}
+/* Dropdown menu */
+.navbar-nav .nav-item.dropdown:hover .dropdown-menu {
+    display: block; /* ホバー時にメニューが表示される */
+}
+
+/* Dropdown toggle button */
+.navbar-nav .nav-item .nav-link {
+    color: #333; /* テキストカラー */
+    font-weight: bold; /* フォントを太字に */
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    background-color: #f8f9fa; /* 背景色 */
+    border-radius: 5px; /* 角丸 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* シャドウ */
+}
+
+/* Dropdown item */
+.dropdown-item {
+    color: #007bff; /* リンクのカラー */
+}
+
+/* Hover effect for dropdown item */
+.dropdown-item:hover {
+    background-color: #007bff; /* ホバー時の背景色 */
+    color: white; /* ホバー時のテキストカラー */
+}
+
+/* Logout form styling (to prevent it from being visible) */
+#logout-form {
+    display: none; /* フォーム自体は非表示 */
+}

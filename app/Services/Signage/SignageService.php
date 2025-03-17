@@ -5,18 +5,25 @@ namespace App\Services\Signage;
 use App\Repositories\Signage\SignageRepository;
 use App\Repositories\LongInfo\LongInfoRepository;
 
+use App\Services\LongInfo\LongInfoService;
+
     
+
 class SignageService 
 {
     // リポジトリクラスとの紐付け
     protected $_signageRepository;
     protected $_longinfoRepository;
 
+    protected $_longinfoService;
+
     // phpのコンストラクタ
-    public function __construct(SignageRepository $signageRepository, LongInfoRepository $longinfoRepository)
+    public function __construct(SignageRepository $signageRepository, LongInfoRepository $longinfoRepository, LongInfoService $longinfoService)
     {
         $this->_signageRepository = $signageRepository;
         $this->_longinfoRepository = $longinfoRepository;
+
+        $this->_longinfoService = $longinfoService;
     }
     
     public function getitem($department)
@@ -75,11 +82,13 @@ class SignageService
                 $sort_data[] = $value;
             } 
         }
-
+        $material_mark2 = $this->new_material_mark($sort_data,$department); 
+        $material_mark = $material_mark2[0];  
+        $material_stock = $material_mark2[1];
         //材料の情報を取得する
-        $material_mark = $this->material_mark($sort_data);
-        //素材の数量を取得
-        $material_stock = $this->material_stock($sort_data);
+        // $material_mark = $this->material_mark($sort_data);          
+        // //素材の数量を取得
+        // $material_stock = $this->material_stock($sort_data);
         // dd($material_stock);
         //品番の工程が入る配列
         /*** 先に宣言しておく********************************/
@@ -257,6 +266,7 @@ class SignageService
         //返す用の配列  
         $return_arr = [];
         // 7製造なら
+        
         if($production == 8){
             foreach ($process as $value) {
                 if(strpos($value, '102') !== false)
@@ -313,9 +323,9 @@ class SignageService
         foreach ($items as $item_name) 
         {
             $stock_data = $this->_signageRepository->get_stock($item_name,"material_stock_1");
-            $stock_datas[$item_name]["material_stock_1"] =  $stock_data;
+            $stock_datas[$item_name]["material_stock_1"] = $stock_data;
             $stock_data = $this->_signageRepository->get_stock($item_name,"material_stock_2");
-            $stock_datas[$item_name]["material_stock_2"] =  $stock_data;
+            $stock_datas[$item_name]["material_stock_2"] = $stock_data;
             foreach ($process_array as $process) {
                 $stock_key_name = $process.'_stock';
                 $stock_data = $this->_signageRepository->get_stock($item_name,$stock_key_name);
@@ -340,15 +350,19 @@ class SignageService
     }
 
 
-    public function tablet_material_mar($sorted_keys) 
+    public function tablet_material_mar($sorted_keys,$department) 
     {
         $result = [];
-        // Get material marking information
-        $material_mark = $this->material_mark($sorted_keys);
-        // Get material stock quantities
-        $material_stock = $this->material_stock($sorted_keys);
+        // // Get material marking information
+        // $material_mark = $this->material_mark($sorted_keys);
+        // // Get material stock quantities
+        // $material_stock = $this->material_stock($sorted_keys);
 
-        $result = [$material_mark, $material_stock];
+        $material_mark2 = $this->new_material_mark($sorted_keys,$department); 
+        $material_mark = $material_mark2[0];  
+        $material_stock = $material_mark2[1];
+
+        $result = $material_mark2;
         return $result; // Ensure the space is a regular ASCII space
     }
 
@@ -363,8 +377,9 @@ class SignageService
             if($DB_data)
             {
                 $data[$name] = $DB_data;
-            } 
+            }   
         }
+
         //材料の品番のと在庫を取得してくる
         $number_used_material = [];
         $material_stock =[];
@@ -381,7 +396,7 @@ class SignageService
             }
         }
 
-
+        // dd($number_used_material);
         //引き当てマークの配列を作成
         $material_mark_arr = []; 
         foreach ($number_used_material as $material_name => $data_contained) {
@@ -428,6 +443,7 @@ class SignageService
                 }
             }
         }
+        // dd($material_mark_arr);
         return $material_mark_arr;
     }
 
@@ -448,6 +464,22 @@ class SignageService
             $material_stock[$value] = $material_stock_quantity;
         }
         return  $material_stock;
+    }
+
+    private function new_material_mark($sort_data,$department)
+    {
+        if($department == "8")
+        {
+            $info_process_arr = [];
+            foreach ($sort_data as $item_name) {
+                $info_process_arr[$item_name] = ["102NC/MC","103NC/MC","組立","704MC",];
+            }
+            $date_arr = $this->_longinfoService->date_get(); 
+            $quantity_arr = $this->_longinfoService->quantity_get($info_process_arr);
+            $material_mark_arr_count = $this->_longinfoService->sin_material_mark($info_process_arr,$quantity_arr,$date_arr);
+            // dump($material_mark_arr_count);
+            return $material_mark_arr_count;
+        }
     }
 
 

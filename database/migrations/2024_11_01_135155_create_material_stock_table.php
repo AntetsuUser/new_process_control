@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('material_stock', function (Blueprint $table) {
             $table->id();
             $table->string('material_name')->nullable()->comment('材料品番');
-            $table->string('material_stock')->nullable()->comment('材料在庫');
-            $table->string('parent_name')->nullable()->comment('親品番');
+            $table->string('material_stock')->nullable()->comment('材料在庫（表示用）');
+            $table->string('before')->nullable()->comment('更新前数値');
             $table->string('using_name')->nullable()->comment('使用品番');
             $table->timestamps();
         });

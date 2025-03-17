@@ -51,15 +51,15 @@
                         <td rowspan="2"  class="blue_line black_line item_name">{{ $key }}</td>
                         <td class="blue_line">　</td>
                         {{-- material_stock_1 --}}
-                        <td class="blue_line">102材料在庫：{{ $material_stock[$key][0] }}</td>
+                        <td class="blue_line">102材料在庫：{{ $material_stock[$key]["102"] }}</td>
                         @foreach ($dateArray as $index => $value)
-                            <td class="blue_line {{ $info_day[$index] }} cellend">{{ $material_mark["102"][$key][$index] }}</td>
-                            <td class="blue_line {{ $info_day[$index] }} ">{{ $material_mark["103"][$key][$index] }}</td>
+                            <td class="blue_line {{ $info_day[$index] }} cellend">{{ $material_mark[$key]["102"][$index] }}</td>
+                            <td class="blue_line {{ $info_day[$index] }} ">{{ $material_mark[$key]["103"][$index] }}</td>
                         @endforeach
                     </tr>
                     <tr>
                         <td class="black_line">　</td>
-                        <td class="black_line">103材料在庫：{{ $material_stock[$key][1] }}</td>
+                        <td class="black_line">103材料在庫：{{ $material_stock[$key]["103"] }}</td>
                         @foreach ($dateArray as $index => $date)
                             @if (isset($items[$key]["target"][$index]))
                                 @if($items[$key]["target"][$index] == 0)

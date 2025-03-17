@@ -94,6 +94,7 @@ class UploadService
         //8行目から最終行までループ　2個ずつ
         $longinfos_day = [];
         $json = [];
+        $sozai = [];
         // $長期の順番を入れる配列
         $item_sort_arr = [];
         for ($row = 8; $row <= $max_row; $row += 2) 
@@ -124,6 +125,30 @@ class UploadService
                 $item_name = substr($item_name, $number_position);
             }
             $mastadata = $this->_uploadRepository->isInMaster($item_name);
+            $item_sort_arr[] = $item_name;
+
+            //素材と品目のjsonを作る
+            // A列の品番を取得
+            $material = $sheet->getCell('A' . $row)->getValue();
+            $material2 = $sheet->getCell('A' . $row +1)->getValue();
+            // 空白の場合、-2ずつして値を取得
+            $row2 = $row;
+            while ((empty($material) || trim($material) === "") && $row2 > 8) {
+
+                $row2 -= 2;  // 2行戻る
+                $material = $sheet->getCell('A' . $row2)->getValue();
+            }
+            $row2 = $row;
+            $material_name = substr($material, 1);  // 最初の文字を削除
+
+            while ((empty($material2) || trim($material2) === "") && $row2 > 8) {
+                $row2 -= 2;  // 2行戻る
+                $material2 = $sheet->getCell('A' . ($row2 + 1))->getValue();
+            }
+            $material_name2 = substr($material2, 1);  // 最初の文字を削除
+
+            $sozai[$material_name][$material_name2][] = $item_name;
+
             //マスタに登録されていなかったら
             if ($mastadata == false) 
             {
@@ -298,14 +323,16 @@ class UploadService
 
             }
         }
+        $sozai_json = json_encode($sozai, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         // 配列をJSON形式にエンコード
         $sort_jsonData = json_encode($item_sort_arr, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         // 配列をJSON形式にエンコード
         $jsonData = json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
         // JSONデータをファイルに書き込む
         $sort_file = '/home/pi/Desktop/process_control/public/item_sort_order.json';
         file_put_contents($sort_file, $sort_jsonData);
+        $sozai_file = '/home/pi/Desktop/process_control/public/sozai.json';
+        file_put_contents($sozai_file, $sozai_json);
 
         // JSONデータをファイルに書き込む
         $file = '/home/pi/Desktop/process_control/public/new_data.json';
@@ -330,6 +357,62 @@ class UploadService
         $this->_uploadRepository->upload_log($originalFilename,$category,$detail,$now);
 
     }
+    //長期情報には数量情報がなく品番マスタには登録がある場合に数量0で登録する
+    public function long_term_existence()
+    {
+        //品番マスタに登録されている品番を取得してくる(stockDBから)
+        $items = $this->_uploadRepository->item_code_confirmation();
+        $remaking = [];
+        $flag = false;
+        $item_sort_order_json = '/home/pi/Desktop/process_control/public/item_sort_order.json';
+        $sozai_json = '/home/pi/Desktop/process_control/public/sozai.json';
+        if (file_exists($sozai_json) && file_exists($item_sort_order_json)) {
+            // JSONファイルを読み込む
+            $item_sort_order = file_get_contents($item_sort_order_json);
+            $sozai_json = file_get_contents($sozai_json);
+
+            // JSONをPHPの配列にデコード
+            $item_sort = json_decode($item_sort_order, true); // true を指定すると連想配列に変換
+            $sozai = json_decode($sozai_json, true); // true を指定すると連想配列に変換
+            $flag = true;
+        }
+        //temp_longinfoに品番データがあるか確認する
+        foreach ($items as $key => $item_name) {
+            $result = $this->_uploadRepository->temp_confirmation($item_name["processing_item"]);
+            if(!$result && $flag)
+            {
+                //third_mysqlの一番最初のテーブルをコピーしてテーブル名を$item_nameに変更する
+                $result2 = $this->_uploadRepository->copyFirstTable($item_name["processing_item"]);
+                $result3 = $this->_uploadRepository->updateColumnsToZero($item_name["processing_item"]);
+                //$item_name["processing_item"]の子品番を取得する
+                $select_item = $this->_uploadRepository->get_number_info($item_name);
+                //シャフトの子品番から材料
+                $child_part_number1 = $select_item -> child_part_number1;
+                $material1 = $this->_uploadRepository->material_item($child_part_number1);
+
+                //ホールドの子品番
+                $ichild_part_number2 = $select_item -> child_part_number2;
+                $material2 = $this->_uploadRepository->material_item($ichild_part_number2);
+                $sozai[$material1][$material2][] = $item_name["processing_item"];
+            
+            }
+        }
+        //item_sortを直す
+        $item_arr = [];
+        foreach ($sozai as $key => $value) {
+            foreach ($value as $key2 => $val) {
+                foreach ($val as $item) {
+                    $item_arr[] = $item;
+                }
+            }
+        }
+        $item_sort_order_json = json_encode($item_arr, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        // JSONデータをファイルに書き込む
+        $sort_file = '/home/pi/Desktop/process_control/public/item_sort_order.json';
+        file_put_contents($sort_file, $item_sort_order_json);
+
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     // 出荷明細
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -380,7 +463,8 @@ class UploadService
         for ($row = 1; $row <= $max_row; $row++) {
             // 要求納期
             $delivery_date = $firstSheet->getCell('E' . $row)->getValue();
-            if (is_null($delivery_date) || !is_numeric($delivery_date)) {
+            $order_number = $firstSheet->getCell('D' . $row)->getValue();
+            if (is_null($delivery_date) || !is_numeric($delivery_date) || is_null($order_number)) {
                 continue; // 日付がnullまたは数値でない場合はスキップ
             }
 
@@ -391,7 +475,6 @@ class UploadService
                 /** 要求納期 **/
                 $dateValue = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($delivery_date);
                 $formattedDate = $dateValue->format('Y-m-d'); // 希望の日付フォーマットに変換 
-
                 /** 品目コード **/
                 $code = $firstSheet->getCell('B' . $row)->getValue();
                 // 数字が最初に出現する位置を取得
@@ -411,7 +494,7 @@ class UploadService
 
                 /** 注文番号 **/
                 $order_number = $firstSheet->getCell('D' . $row)->getValue();
-
+                // dump($row);
                 // 注文番号が既存データに重複していないかチェック
                 if (!$this->isDuplicateOrder($order_number, $all_shipping_data)) {
                     // 「材不」が備考に含まれていない場合にデータを追加
@@ -432,6 +515,7 @@ class UploadService
                     }
                 }
                 else {
+                    // dd($row,$code);
                     return $order_number;
                 }
             }
@@ -511,70 +595,103 @@ class UploadService
         $reader = new XlsxReader();
         $spreadsheet = $reader->load($uploadfile);
         $sheetCount = $spreadsheet->getSheetCount();
-        // dd($originalName);
-        for ($i = 0; $i < $sheetCount; $i++) {
-            $sheet = $spreadsheet->getSheet($i);
-            $sheetName = $sheet->getTitle();
-            if ($sheetName === '取込用') 
-            {
-                //本社第２工場の場合
-                dump($start_date);
-                dump($sheetName);
-                // シートの最終行を取得
-                $max_row = $sheet->getHighestRow();
-                // シートの最終列を取得
-                $max_col = $sheet->getHighestColumn();
-                if (!$this->isValidDate($start_date)) {
-                    return "invalid_date_format"; // 無効な日付の場合
-                }
-                // 開始日と終了日を数値化する
-                $start = $this->dateToExcelSerial($start_date);
-                //材料DBに登録されている品目を取得してくる
-                $material_items = $this->_uploadRepository->get_material_items_name();
-                // dd($material_items);
-                //登録用配列
-                $material_arr =[];
-                for ($row = 1; $row <= $max_row; $row++) {
-                    // 入荷日
-                    $excel_day = $sheet->getCell('B' . $row)->getValue();
-                    if (is_null($excel_day) || !is_numeric($excel_day)) {
-                        continue; // 日付がnullまたは数値でない場合はスキップ
-                    }
-                    //チェック
-                    $check = $sheet->getCell('A' . $row)->getValue();
-                    if($excel_day == $start && $check == "〇"){
-                            /** 入荷日のフォーマットを直す["○○○○-○○-○○に"] **/
-                        $dateValue = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($excel_day);
-                        $formattedDate = $dateValue->format('Y-m-d'); // 希望の日付フォーマットに変換 
-                        //材料品目コード
-                        $material_code = $sheet->getCell('C' . $row)->getValue();
-                        // 最初の文字を削除
-                        $material_code = substr($material_code, 1);
-                        $is_matched;
-                        if(in_array($material_code,$material_items))
-                        {
-                            $is_matched ="matched";
-                            //数量
-                            $quantity = $sheet->getCell('D' . $row)->getValue();
-                            //備考
-                            $note = $sheet->getCell('E' . $row)->getValue();
-                            $material_arr[] = [
-                                "arrival_date" => $formattedDate,
-                                "item_code" => $material_code,
-                                "quantity"=> $quantity,
-                                "note" => $note,
-                                "is_matched" =>$is_matched,
-                                "status" =>"no",
-                                "factory" =>$sheetName,
-                                "history_id" => $id
-                            ];
-                        }
-                    }
-                }  
-                //データベースに登録する
-                $this->_uploadRepository->arrival_signup($material_arr);
+        $sheet = $spreadsheet->getSheetByName('カガミ');
+        $max_row = $sheet->getHighestRow();
+        //         // シートの最終列を取得
+        $max_col = $sheet->getHighestColumn();
+
+        $material_items = $this->_uploadRepository->get_material_items_name();
+        // dd($material_items);
+
+        // Fの値を取得する
+        $material_ledger = [];
+        for ($i=6; $i <$max_row ; $i++) { 
+
+            $item_name = preg_replace('/^P/', '', $sheet->getCell('C' . $i)->getValue());
+
+            $pay_remaining_count =  $sheet->getCell('F' . $i)->getValue();
+
+            if (in_array($item_name, $material_items, true)) {
+                $material_ledger[$item_name] = $pay_remaining_count;
             }
+
         }
+        dd($material_ledger);
+    
+        //DBと一致したアイテムだけ在庫数をDBに保存する
+
+        // dd($originalName);
+        // for ($i = 0; $i < $sheetCount; $i++) {
+        //     $sheet = $spreadsheet->getSheet($i);
+        //     $sheetName = $sheet->getTitle();
+        //     if ($sheetName === '取込用') 
+        //     {
+        //         //本社第２工場の場合
+        //         dump($start_date);
+        //         dump($sheetName);
+        //         // シートの最終行を取得
+        //         $max_row = $sheet->getHighestRow();
+        //         // シートの最終列を取得
+        //         $max_col = $sheet->getHighestColumn();
+        //         if (!$this->isValidDate($start_date)) {
+        //             return "invalid_date_format"; // 無効な日付の場合
+        //         }
+        //         // 開始日と終了日を数値化する
+        //         $start = $this->dateToExcelSerial($start_date);
+        //         //材料DBに登録されている品目を取得してくる
+        //         $material_items = $this->_uploadRepository->get_material_items_name();
+        //         // dd($material_items);
+        //         //登録用配列
+        //         $material_arr =[];
+        //         for ($row = 1; $row <= $max_row; $row++) {
+        //             // 入荷日
+        //             $excel_day = $sheet->getCell('B' . $row)->getValue();
+        //             if (is_null($excel_day) || !is_numeric($excel_day)) {
+        //                 continue; // 日付がnullまたは数値でない場合はスキップ
+        //             }
+        //             //チェック
+        //             $check = $sheet->getCell('A' . $row)->getValue();
+        //             if($excel_day == $start && $check == "〇"){
+        //                     /** 入荷日のフォーマットを直す["○○○○-○○-○○に"] **/
+        //                 $dateValue = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($excel_day);
+        //                 $formattedDate = $dateValue->format('Y-m-d'); // 希望の日付フォーマットに変換 
+        //                 //材料品目コード
+        //                 $material_code = $sheet->getCell('C' . $row)->getValue();
+        //                 // 最初の文字を削除
+        //                 $material_code = substr($material_code, 1);
+        //                 $is_matched;
+        //                 if(in_array($material_code,$material_items))
+        //                 {
+        //                     $is_matched ="matched";
+        //                     //数量
+        //                     $quantity = $sheet->getCell('D' . $row)->getValue();
+        //                     //備考
+        //                     $note = $sheet->getCell('E' . $row)->getValue();
+        //                     $material_arr[] = [
+        //                         "arrival_date" => $formattedDate,
+        //                         "item_code" => $material_code,
+        //                         "quantity"=> $quantity,
+        //                         "note" => $note,
+        //                         "is_matched" =>$is_matched,
+        //                         "status" =>"no",
+        //                         "factory" =>$sheetName,
+        //                         "history_id" => $id
+        //                     ];
+        //                 }
+        //             }
+        //         }  
+        //         //データベースに登録する
+        //         $this->_uploadRepository->arrival_signup($material_arr);
+        //     }elseif($sheetName === 'カガミ')
+        //     {
+        //          // シートの最終行を取得
+        //         $max_row = $sheet->getHighestRow();
+        //         // シートの最終列を取得
+        //         $max_col = $sheet->getHighestColumn();
+        //         dd($max_row,$max_col);
+        //     }
+        // }
+        dd("s");
         return "true";
     }
 
@@ -682,6 +799,7 @@ class UploadService
     {
         foreach ($all_shipping_data as $item) {
             if ($item['order_number'] == $order_number) {
+                // dd($item,$order_number);
 
                 return true; // 重複が見つかった場合
             }

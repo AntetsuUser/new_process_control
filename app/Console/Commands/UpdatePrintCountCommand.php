@@ -51,7 +51,7 @@ class UpdatePrintCountCommand extends Command
             Department::query()->update(['print_count' => 1]);  // 印刷回数を1にリセット
 
             // 最後に実行した月を更新
-            Department::update(['last_run_month' => $currentMonth]);
+            Department::query()->update(['last_run_month' => $currentMonth]);
 
             // 成功メッセージを表示
             $this->info('印刷回数が更新され、最後に実行した月が更新されました。');

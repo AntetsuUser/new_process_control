@@ -53,8 +53,8 @@ class LoadPredictionController extends Controller
         }
 
         // データが存在する場合、計算結果をビューに渡して表示
-        return redirect()->route('load_prediction.load_prediction_machine')
-                         ->with('data', $result);
+        session(['data' => $result]); // 永続的にセッションに保存
+        return redirect()->route('load_prediction.load_prediction_machine');
     }
 
     /**
@@ -64,6 +64,45 @@ class LoadPredictionController extends Controller
      */
     public function load_prediction_machine(Request $request)
     {
-        return view('load_prediction.load_prediction_machine');  // 負荷予測機械画面を表示
+         // フラッシュデータを取得
+        $data = session('data');
+
+        $machines = $data[0];
+        $days = $data[1];
+        $department_id = $data[2];
+        // デバッグ用
+        // dd($data);
+        // dd($department_id);
+        // 負荷予測機械画面を表示し、データを渡す
+        return view('load_prediction.load_prediction_machine', compact('machines','days','department_id'));
+    }
+
+    public function load_prediction_graph(Request $request)
+    {
+        $division =  $request->division;
+        $lineNo =  $request->lineNo;
+        $week_arr_string = json_decode($request->week_arr, true);
+        $week_arr_string = stripslashes($week_arr_string);
+
+        $week_arr = json_decode($week_arr_string, true);
+     
+
+        // 日にちと選択した設備番号を渡して、詳細な負荷率を計算
+        $result = $this->_loadpredictionService->load_detail_calculation($lineNo,$week_arr);
+
+        // dd($result);
+        $processing_numbers = $result[0];
+        $percentage = $result[1];
+        $week_arr = $result[2];
+        // dd($processing_numbers);
+
+        if($result == "null"){
+            //ない場合messageと一緒に元の画面に返す
+            return redirect()->route('load_prediction.load_prediction_machine')->with('message', '該当するデータが登録されていないか、存在しません');
+
+        }
+        // dd($processing_numbers);
+
+        return view('load_prediction.load_prediction_graph',compact('processing_numbers','percentage','week_arr','lineNo'));
     }
 }

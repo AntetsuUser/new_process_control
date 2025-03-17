@@ -15,6 +15,11 @@ window.onload = (e)=>{
 		video.setAttribute("playsinline", true);
 		video.play();
 		startTick();
+		//カメラが起動したとこをlogに
+		camera_boot_log("カメラ起動","成功",log_camera_url);
+	}).catch((error) => {
+		//カメラが起動したとこをlogに
+		camera_boot_log("カメラ起動","失敗",log_camera_url);
 	});
 
 	function startTick()
@@ -30,8 +35,11 @@ window.onload = (e)=>{
 			{
 				if(code)
 				{
+					//QRの読み取りが成功したときlogに
+					camera_boot_log("QR読み取り","成功",log_camera_url);
 					if(code.data != "")
 					{
+						camera_boot_log("QRコードデータ",code.data,log_camera_url);
 						console.log(code.data)
 						// msg.innerText = code.data;// Data
 						//モーダルで表示させて飛ばす
@@ -77,6 +85,8 @@ window.onload = (e)=>{
 			}
 		}
 		print_id = str.substring(numbers +1);
+
+		camera_boot_log("QR読み取り結果",print_id,log_camera_url);
 		console.log(print_id);
 		console.log(url)
 		document.querySelector('#js-result').innerText = "ID="+print_id
@@ -86,7 +96,9 @@ window.onload = (e)=>{
 		document.querySelector('#js-modal').classList.remove('fede_out')
 		
 	}
+	//カメラからQRコードを読み取って開いた時のモーダルの開くボタン
 	document.querySelector('#js-link').addEventListener('click', function (e) {
+	camera_boot_log("QR","開く",log_camera_url);
     e.preventDefault(); // デフォルトの遷移をキャンセル
 		element = document.getElementById('js-result');
 		// 文字列から「ID＝」を削除
@@ -140,9 +152,10 @@ window.onload = (e)=>{
             } 
         })
 	});
-
+	//カメラからQRコードを読み取って開いた時のモーダルの閉じるボタン
 	document.querySelector('#js-modal-close')
 		.addEventListener('click', () => {
+			camera_boot_log("QR","閉じる",log_camera_url);
 			document.querySelector('#js-modal').classList.add('fede_out')
 			document.querySelector('#js-modal').classList.remove('is-show')
 			flag = false
@@ -150,12 +163,15 @@ window.onload = (e)=>{
 	// QR読み込めずに入力する時のモーダルの表示、非表示
 	document.getElementById("help_id").onclick = function() 
 	{
+		camera_boot_log("読み込めない時は","開く",log_camera_url);
 		flag = true
 		document.querySelector('#help-ja-modal').classList.add('is-show')
 		document.querySelector('#help-ja-modal').classList.remove('fede_out')
 	};
+	//カメラを使わずにモーダルを開いたときの開くボタン
 	document.getElementById("help-js-link").onclick = function() 
 	{
+		camera_boot_log("ヘルプ","開く",log_camera_url);
 		element = document.getElementById('help-id-input');
 		console.log(element.value)
 		$.ajax
@@ -177,6 +193,7 @@ window.onload = (e)=>{
 					//入力済みかどうか
 					if(jsonData[0].input_complete_flag == "true")
 					{
+						camera_boot_log("ヘルプ","閉じる",log_camera_url);
 						document.querySelector('#id-not-found').classList.add('not-found-none')
 						// let element_url = "https://processcontrol.antetsu-systems.com/result_input/?characteristic_id="+element.value;
 						let element_url = "/qr/input_directions?characteristic_id="+element.value;
@@ -208,12 +225,44 @@ window.onload = (e)=>{
 	};
 	document.querySelector('#help-modal-close')
 	.addEventListener('click', () => {
+		camera_boot_log("ヘルプ","閉じる",log_camera_url);
 		document.querySelector('#help-ja-modal').classList.add('fede_out')
 		document.querySelector('#id-not-found').classList.add('not-found-none')
 		document.querySelector('#help-ja-modal').classList.remove('is-show')
 		element.value = ""
 		flag = false
 	})
+
+
+	
+	//カメラが起動したlogを送る
+	function camera_boot_log(location,status,log_camera_url)
+	{
+		$.ajaxSetup({
+			headers: {
+				'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+			}
+		});
+		console.log(log_camera_url);
+		$.ajax({
+			url: log_camera_url, // ルートで定義されたURL
+			type: 'POST',
+				data: {
+					location: location, // キーと値のペアで送信
+					status: status
+				},
+			dataType: 'json',
+			success: function (response) {
+				console.log('Log sent successfully:', response);
+			},
+			error: function (xhr, status, error) {
+				console.error('Error sending log:', error);
+				console.error('Error sending log:', xhr);
+				console.error('Error sending log:', status);
+				alert('エラーが発生しました。再試行してください。');
+			}
+		});
+	}
 
 }
 

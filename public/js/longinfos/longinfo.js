@@ -12,14 +12,14 @@ $(function()
     //作業中のマスを青く
     in_work_cell();
     //平準化のマスを黄色く
-    LevelingPrediction();
+    LevelingPrediction(base_ability);
     let local_ip= "111.111.111.111";
     getLocalIP().then(ip => {
-        console.log('ローカルIPアドレス:', ip);
+        // console.log('ローカルIPアドレス:', ip);
         local_ip = ip;
         $('#local_ip').val(local_ip)
     }).catch(error => {
-        console.error('エラーが発生しました:', error);
+        // console.error('エラーが発生しました:', error);
         $('#local_ip').val(local_ip)
     });
     
@@ -172,7 +172,7 @@ function addToUnmatchedArr(unmatched_arr, parent_name, process, processing_quant
 /////////////////////////////////////////////////////////////////
 function lead_time_coloring() {
     // 今日の日付と一致する日を見つける
-    const today = new Date();
+    const today = new Date(); 
     const todayJST = new Date(today.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
     const base_day = todayJST.toISOString().split('T')[0];
 
@@ -200,10 +200,10 @@ function lead_time_coloring() {
             if (process.includes("704MC")) {
                 read_time_day = 3;
             } else {
-                read_time_day = 5;
+                read_time_day = 4;
             }
         } else if (process.includes("組立")) {
-            read_time_day = 4;
+            read_time_day = 3;
         } else if (process.includes("NC")) {
             read_time_day = 5;
         }
@@ -215,7 +215,7 @@ function lead_time_coloring() {
                     cell.addClass('read_time');
                 }
             }
-            //今日の日付より前にっ数量がある場所にいろを塗る
+            //今日の日付より前に数量がある場所にいろを塗る
             for(let col = match_th_col; col >= 3; col--)
             {
                 let cell = table_color.eq(i).find('td').eq(col);
@@ -233,47 +233,251 @@ function lead_time_coloring() {
 /////////////////////////////////////////////////////////////////
 function selectable_area_coloring()
 {
-
+    let line_number = line+numbers;
+    // console.log(line_number);
     let process_able_area_json = $('#process_able_area').val();
     var process_able_area = JSON.parse(process_able_area_json);
+    // console.log(process_able_area);
+    let table_row_1 = $("table tbody tr td:nth-child(1)");
+    table_row_1.each(function(i) {
+        let td = $(this); // 現在の <td> 要素
+        let item_name = td.text().trim(); // 文字列の前後の空白を削除
 
-    let table_row = $("table tbody tr td:nth-child(2)");
-    //テーブルの工程の列のfor
-    table_row.each(function(i) {
-        let process = $(this).text();
-        //工程に/が含まれていたら
-        if(process.includes('/'))
-        {
-            //工程の/を分解
-            var process_arr = splitAndProcess(process);
-            process_arr.forEach(element => {
-                //工程と可能エリアが一致したらclassを付与
-                if(process_able_area.includes(element))
-                {
-                    $(this).closest('tr').addClass('set_cel');
-                    // 現在のtdにクラスを追加
-                    $(this).addClass('set_cel');
-                }
-            });
-        }else{
-            //工程と可能エリアが一致したらclassを付与
-            if(process_able_area.includes(process))
-            {
-                $(this).closest('tr').addClass('set_cel');
-                // 現在のtdにクラスを追加
-                $(this).addClass('set_cel');
+        // 文字があり、かつ info_item クラスが含まれている場合
+        if (item_name.length > 0 && td.hasClass("info_item")) {
+
+             // item_name が selectitem のキーに存在しているかチェック
+            if (selectitem.hasOwnProperty(item_name)) {
+                // info_backcolorが見つかるまで下に行く
+                let table_row_2 = $("table tbody tr td:nth-child(2)");
+                let item_values = selectitem[item_name];
+                // 各行を順に処理して、info_backcolor クラスがついているかをチェック
+                table_row_2.slice(i+2).each(function(j) {
+                    let current_td = $(this);
+                    let current_td_text = current_td.text().trim(); // 文字列の前後の空白を削除
+                    // console.log(current_td_text);
+
+                    // info_backcolorクラスがついているかをチェック
+                    if (current_td.hasClass("info_backcolor")) {
+                        // current_td_text
+                          return false; // info_backcolorが見つかったらループを抜ける
+                    }
+                    else
+                    {
+                        if(current_td_text.includes('/'))
+                        {   
+                            //工程の/を分解
+                            var process_arr = splitAndProcess(current_td_text);
+                            process_arr.forEach(function(element) {
+                                // process_arr 内の各要素が item_values に含まれているかチェック
+                                // console.log(element);
+                                // console.log(item_values);
+                                if (item_values.includes(element)) {
+                                    // console.log("一致しました: ", element);  // 一致した場合に表示
+                                    // console.log($(this));
+                                    current_td.closest('tr').addClass('set_cel'); // 親の行にクラスを追加
+                                    current_td.addClass('set_cel'); // 現在の <td> にクラスを追加
+                                }
+                            });
+                            
+                        }else{
+                            //工程と可能エリアが一致したらclassを付与
+                            if(item_values.includes(current_td_text))
+                            {
+                                $(this).closest('tr').addClass('set_cel');
+                                // 現在のtdにクラスを追加
+                                $(this).addClass('set_cel');
+                            }
+                        }  
+                    }   
+                });
             }
-        }        
+        }
     });
-
 }   
 
 
 /////////////////////////////////////////////////////////////////
 // 平準化のマスを黄色く塗る
 /////////////////////////////////////////////////////////////////
-function LevelingPrediction()
+function LevelingPrediction(base_ability) {
+
+    console.log(base_ability);
+    let today = new Date(); 
+    let formattedDate = today.getFullYear() + '-' 
+                        + (today.getMonth() + 1).toString().padStart(2, '0') + '-' 
+                        + today.getDate().toString().padStart(2, '0');
+    // console.log(formattedDate);  // 例: 2025-01-29
+
+    //日付けと一致するthのcolumnindexを求める
+    // テーブルに今日の日にちがあるかを探す
+    let table = $("#info_table tr:first th");
+    let match_th_col = 0;
+    for (let j = table.length - 1; j >= 0; j--) {
+        let th_day = $(table[j]).attr('id');
+        let th_date = new Date(th_day);
+        let formattedth_date = th_date.getFullYear() + '-' 
+                        + (th_date.getMonth() + 1).toString().padStart(2, '0') + '-' 
+                        + th_date.getDate().toString().padStart(2, '0');
+        //  console.log(formattedDate,formattedth_date);
+        if (formattedDate >= formattedth_date) {
+            match_th_col = (formattedDate == formattedth_date) ? j : j + 1;
+            break; // ループを終了
+        }
+    }
+    // console.log(match_th_col);
+    let baseability = 0;
+    let process =0;
+    Object.entries(base_ability).forEach(([process, items]) => {
+        // processによって処理を分ける
+        if (process === "704MC") {
+            Object.entries(items).forEach(([item_name, ability]) => {
+                end = match_th_col + 3
+
+                processItem(item_name, ability,end,process) 
+            });
+        } else if (process === "102NC/MC") {
+            // 終了日付今日から4日後
+            end = match_th_col + 4
+            Object.entries(items).forEach(([item_name, ability]) => {
+                processItem(item_name, ability,end,process) 
+            });
+
+        } else if (process === "103NC/MC") {
+            // 終了日付今日から4日後
+            end = match_th_col + 4
+            Object.entries(items).forEach(([item_name, ability]) => {
+                processItem(item_name, ability,end,process) 
+            });
+            
+        } else if (process === "組立") {
+            // 他のprocessの場合の処理
+            end = match_th_col + 3
+            Object.entries(items).forEach(([item_name, ability]) => {
+                processItem(item_name, ability,end,process) 
+            });
+        } else {
+            // その他の処理
+        }
+    });
+}
+
+function processItem(item_name, ability,end,process) 
 {
+
+    let table_row_arr = [];
+
+    // 品番の能力
+    let baseability = ability;
+
+    // console.log(`Item: ${item_name}, Ability: ${ability}`);
+    let tbody = $("#info_table tbody");
+
+    // 品番を検索してヒットしたindexを保存
+    tbody.find('tr').each((index, row) => {
+        // 最初の<td>の内容を取得
+        let firstTd = $(row).find('td').first();
+
+        // firstTdが存在し、item_nameが含まれている場合
+        if (firstTd.length && firstTd.text().includes(item_name)) {
+            // console.log(`品番 '${item_name}' 行番号 ${index + 1}`);
+
+            if(process == "組立" || process == "704MC")
+            {
+                // 2番目の列を取得
+                // ヒットしたindexから下に進めてset_celクラスのあるtrを検索
+                tbody.find('tr').slice(index + 1).each((j, nextRow) => {
+                    // set_celクラスが付いている行をチェック
+                    let current_row = $(nextRow);
+                    // console.log(current_row);
+                    let secondTd = current_row.find("td:nth-child(2)").text().trim();
+                    // console.log(secondTd);
+                    // console.log(process);
+                    if (process == secondTd) {
+                        table_row_arr.push(index + j +1);
+                        return false; // `each` ループを抜けるs
+                    }
+                });
+            }else
+            {
+                table_row_arr.push(index + 1);
+            }
+        }
+    });
+
+    // console.log(table_row_arr);
+    // 日付のIDが含まれている列番号を取得
+    let columnIndexes = [];  // 列番号を格納する配列
+    let column_id = [];
+    $('#info_table thead th').each(function(index) {
+        let th = $(this);
+        let thId = th.attr('id');  // id属性の取得
+        if (thId) {  // idが存在する場合
+            columnIndexes.push(index);  // 列番号を配列に追加
+            column_id.push(thId);　//id
+        }
+    });
+    let  col_total = 0;
+    // 列番号（columnIndexes）を外側のループにし、行番号（table_row_arr）を内側のループに変更
+    for (let colIndex of columnIndexes.reverse()) {
+        //列番号の合計
+        let thId = $("#info_table thead th").eq(colIndex).attr('id');
+        
+        if (end == colIndex) {
+            // console.log(col_total);
+            // console.log(`colIndexとthIdが一致しました。ループを終了します。`);
+            //ここでcol_totalが残っていた場合
+            if(col_total > 0)
+            {
+                // console.log("間に合いませんよ");
+                // console.log(col_total);
+                break;  // ループを終了
+            }
+            break;  // ループを終了
+        }
+        // console.log(`列番号: ${colIndex + 1}, thのid: ${thId}`);
+        
+        // 行番号（table_row_arr）のループ
+        table_row_arr.forEach((rowIndex) => {
+
+            // tbody内の指定された行と列に対応する<td>を取得
+            let td = $("#info_table tbody tr").eq(rowIndex).find("td").eq(colIndex);
+            // <td>が存在する場合、そのテキスト内容を取得
+            if (td.length && td.hasClass("tap_day")) {
+                let textContent = td.text().trim(); // 空白を除去
+                if (textContent.length > 0) { // 文字が入っているか確認
+                    let numberMatch = textContent.match(/\d+/); // 数値部分を取得
+                    let number = numberMatch ? parseInt(numberMatch[0], 10) : null; // 数値に変換
+                    if (number !== null) {
+                        col_total = parseInt(col_total) + parseInt(numberMatch);
+                    }
+                }
+            }
+        });
+        let ability_result = 0;
+        let carryOver = 0; // 持ち越し用の変数
+        // 能力 - 一日の合計
+        ability_result = col_total - baseability;
+        // 持ち越しが必要な場合
+        if (ability_result >= 0) {
+            carryOver = ability_result;  // 余った分を持ち越しに保存
+            col_total = carryOver;       // col_totalには持ち越しを適用
+            // console.log("持ち越し: " + carryOver);
+        } else {
+            col_total = 0;  // 負の値の場合は 0 にリセット
+            carryOver = 0;   // 持ち越しは 0 にリセット
+        }
+
+    }
+    if(col_total > 0)
+    {
+        console.log("間に合ってない品番");
+        console.log(item_name);
+        console.log(table_row_arr);
+        console.log(columnIndexes.reverse());
+        console.log(end);
+        // columnIndexes
+    }
 
 }
 
@@ -300,9 +504,10 @@ $(document).on('click', 'table tbody tr td:nth-child(n+4)', function()
     // セルのテキストが空でない場合かつ、'残'の文字が含まれている場合の処理
     if (cellText !== "" && cellText.includes('残') && rowClass == true && read_time_flag == false && remaining_count_flag == false) {
         selection_elements = $(this);
+        console.log("if");
         //長期数量を表示
         // Maxロットを取得し表示
-        let maxlot = $(this).closest('tr').find('td:first-child').text().trim();
+        let maxlot = $(this).closest('tr').find('td:first-child p').text().trim();
         //選択したところに()が付いているか
         if (cellText.includes('(') && cellText.includes(')')) 
         {
@@ -322,6 +527,7 @@ $(document).on('click', 'table tbody tr td:nth-child(n+4)', function()
 
             $("#lot_number").text(maxlot);
             $('#num_decision').val(cancel_lot); 
+            console.log("数量："+ input_lot　);
         }
         else
         {
@@ -331,8 +537,65 @@ $(document).on('click', 'table tbody tr td:nth-child(n+4)', function()
         }
 
         selection_elements.closest('tr').find('td:first-child p').text(maxlot);
-        //モーダルを表示する
+
+        //------------ログに入れるために工程と品番を取得してくる---------------------
+        /** 工程*/
+         let table_th_row = $("#info_table tr:first th");
+        let tappedElement = selection_elements[0];
+        // 行 (tr) を取得
+        let row = $(tappedElement).closest('tr');
+        // 同じ行の2列目のセルを取得
+        let secondColumn = row.find('td').eq(1);
+         // セルのテキストを取得
+        let secondColumnText = secondColumn.text().trim();
+        let item_code ;
+        // 現在の行のインデックスを取得
+        let tr_index = row.index();
+        // tr内のtdのインデックスを取得
+        let tappedElementJQ = $(selection_elements[0]);
+        let td_index = tappedElementJQ.index();
+
+        // 1行目までループして検索
+        for (let index = tr_index; index >= 0; index--) {
+            // 現在の行を取得
+            let currentRow = row.parent().find('tr').eq(index);
+            // 1列目のセルを取得
+            let element = currentRow.find('td').eq(0);
+
+            // elementが存在することを確認
+            if (element.length) {
+                // クラスをチェック
+                if (element.hasClass('info_item')) {
+                    item_code = element.text().trim();
+                    break; // 条件を満たしたらループを終了
+                }
+            }
+        }
+        let delivery_date ;
+        //選択されたセルの納期を取得
+        if(table_th_row.eq(td_index).text() == "遅延")
+        {
+            delivery_date = "遅延"
+        }else{
+            delivery_date = table_th_row.eq(td_index).attr('id');
+        }
+        console.log(item_code);
+        //工程
+        console.log(secondColumnText);
+        //長期の残り数量
+        console.log(cellText);
+        //選択されているロット/Maxロット
+        console.log(maxlot);
+        console.log(delivery_date);
+
+        cellinfo_log(item_code,secondColumnText,delivery_date,cellText,maxlot,log_selectcell_url)
+        //secondColumnText
         modal.css('display', 'block');
+        modal_log("数量選択","表示されました",log_modal_url);
+        //ここでタップした内容を取得してくる
+        //選択した内容「品番」「工程」「納期」「長期数量」「ロット数」
+
+        
     }
 });
 
@@ -340,6 +603,7 @@ $(document).on('click', 'table tbody tr td:nth-child(n+4)', function()
 // Maxボタンが押されたら
 /////////////////////////////////////////////////////////////////
 $('#max_btn').on('click',function(){
+    btnlog("Max",log_submit_url)
     //入力された数
     let input_value = $('#num_decision').val(); 
 	//ロット数を表示
@@ -370,6 +634,9 @@ $('#max_btn').on('click',function(){
 			input_count = count_value
 		}
 	}
+
+    //MAXの合値をlogに書き込む
+    maxlog(input_count,log_maxbtn_url);
 	// input_countの値を<input>要素に設定
     $('#num_decision').val(input_count);
 });
@@ -378,7 +645,7 @@ $('#max_btn').on('click',function(){
 /////////////////////////////////////////////////////////////////
 $('#decision_btn').on('click',function()
 {
-
+    btnlog("決定",log_submit_url);
     //入力された数
     let input_value = $('#num_decision').val(); 
     //長期の残り数量
@@ -390,8 +657,9 @@ $('#decision_btn').on('click',function()
         info_num = info_num.match(/残\d+/);
     }
     //選択中の要素の最初のtd
-    let lot =  selection_elements.closest('tr').find('td:first-child').text().trim();
+    let lot =  selection_elements.closest('tr').find('td:first-child p').text().trim();
 
+    
     let parts = lot.split('/');
 	let input_lot = parts[0].trim(); // スラッシュの前の部分
     let max_lot = parts[1].trim();  // スラッシュの後の部分
@@ -427,6 +695,7 @@ $('#decision_btn').on('click',function()
                     selection_elements.addClass('selected');
                 }
                 $('#easyModal').css('display', 'none');
+                modal_log("数量選択","非表示になりました",log_modal_url);
             }
         }
         else
@@ -435,6 +704,7 @@ $('#decision_btn').on('click',function()
             if(max_lot < input_value || input_value < 1)
             {
                 alert("入力した値を確認してください");
+                modal_log("数量選択","非表示になりました",log_modal_url);
             }
             else
             {
@@ -448,6 +718,7 @@ $('#decision_btn').on('click',function()
                 }
             }
             $('#easyModal').css('display', 'none');
+            modal_log("数量選択","非表示になりました",log_modal_url);
         }
     }
 })
@@ -456,9 +727,10 @@ $('#decision_btn').on('click',function()
 // モーダルの取り消しボタンが押されたとき
 /////////////////////////////////////////////////////////////////
 $('#cancel_btn').on('click',function(){
+    btnlog("取り消し",log_submit_url);
    // モーダルを非表示にする
     let cellText = selection_elements.text().trim();
-    let maxlot =  selection_elements.closest('tr').find('td:first-child').text().trim();
+    let maxlot =  selection_elements.closest('tr').find('td:first-child p').text().trim();
     if (cellText.includes('(') && cellText.includes(')')) 
     {
         let cancel_lot = cellText.match(/\((.+)\)/)[1]
@@ -468,6 +740,7 @@ $('#cancel_btn').on('click',function(){
         selection_elements.text(match);
         selection_elements.toggleClass('selected');
         $('#easyModal').css('display', 'none');
+        modal_log("数量選択","非表示になりました",log_modal_url);
     }
 })
 
@@ -475,9 +748,10 @@ $('#cancel_btn').on('click',function(){
 // モーダルキャンセルボタンが押されたら　モーダルを閉じる
 /////////////////////////////////////////////////////////////////
 $('#close_btn').on('click', function() {
+    btnlog("キャンセル",log_submit_url);
     // モーダルを非表示にする
     let cellText = selection_elements.text().trim();
-    let maxlot =  selection_elements.closest('tr').find('td:first-child').text().trim();
+    let maxlot =  selection_elements.closest('tr').find('td:first-child p').text().trim();
     if (cellText.includes('(') && cellText.includes(')')) 
     {
         let cancel_lot = cellText.match(/\((.+)\)/)[1]
@@ -499,12 +773,14 @@ $('#close_btn').on('click', function() {
         selection_elements.closest('tr').find('td:first-child p').text(maxlot);
     }
     $('#easyModal').css('display', 'none');
+    modal_log("数量選択","非表示になりました",log_modal_url);
 });
 
 /////////////////////////////////////////////////////////////////
 // 印刷ボタンを押したとき
 /////////////////////////////////////////////////////////////////
 $('#print').on('click',function(){
+    btnlog("印刷",log_submit_url)
     var allHaveClass = false;
     var className = 'selected'; // 確認したいクラス名
     let select_arr = [];
@@ -633,7 +909,8 @@ $('#print').on('click',function(){
             // select_arr.push([item_code,process,delivery_date,formattedDate,processing_quantity,processing_all,long_term_all,lineNumbers,workersid,process_number]);
             //[品目コード、工程、納期、着手日、加工数、今まで何個加工したか、長期数量、設備番号、作業者id,工程番号]
             select_arr.push([item_code,process,delivery_date,formattedDate,processing_quantity,long_term_all,lineNumbers,workersid,process_number,ip]);
-        
+            //指示書にする情報をログに送信する
+            
         }
 
     });
@@ -891,21 +1168,152 @@ var open = $('#help_btn'),
 
 //開くボタンをクリックしたらモーダルを表示する
 open.on('click',function(){	
+    btnlog("色説明",log_submit_url)
 	container.addClass('active');
+    modal_log("色説明","表示されました",log_modal_url);
 	return false;
 });
 
 //閉じるボタンをクリックしたらモーダルを閉じる
 close.on('click',function(){	
 	container.removeClass('active');
+    modal_log("色説明","非表示になりました",log_modal_url);
 });
 
 //モーダルの外側をクリックしたらモーダルを閉じる
 $(document).on('click',function(e) {
 	if(!$(e.target).closest('.help_modal-body').length) {
+         if (container.hasClass('active')) {
+            // ここにremoveClassが呼ばれる前の処理を書く
+            console.log('activeクラスが削除される前の処理');
+            modal_log("色説明","非表示になりました",log_modal_url);
+        }
 		container.removeClass('active');
 	}
 });
+
+
+// モーダルが開いたり閉じたりしたときにlogに送る
+//引数
+//1　どこのモーダルか
+//2　開いたか閉じたか
+// モーダルが開いたり閉じたりしたときにlogに送る
+function modal_log(modal_location,status,log_modal_url)
+{
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+    console.log(modal_location,status,log_modal_url);
+    // Ajaxリクエストでlogコントローラーにデータを送信
+    $.ajax({
+        url: log_modal_url, // ルートで定義されたURL
+        type: 'POST',
+            data: {
+                modal_location: modal_location, // キーと値のペアで送信
+                status: status, // キーと値のペアで送信
+            },
+        dataType: 'json',
+        success: function (response) {
+            console.log('Log sent successfully:', response);
+        },
+        error: function (xhr, status, error) {
+            console.error('Error sending log:', error);
+            alert('エラーが発生しました。再試行してください。');
+        }
+    });
+
+}
+//選択されたテーブルのセルの情報のログをajaxで記録する
+//引数
+//1　品番
+//2　工程
+//3　納期
+//4　長期数量
+//5　ロット
+//6　ajaxURL
+function cellinfo_log(item_code,secondColumnText,delivery_date,cellText,maxlot,log_selectcell_url)
+{
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+    // Ajaxリクエストでlogコントローラーにデータを送信
+    $.ajax({
+        url: log_selectcell_url, // ルートで定義されたURL
+        type: 'POST',
+            data: {
+                item_code: item_code, // キーと値のペアで送信
+                secondColumnText: secondColumnText, // キーと値のペアで送信
+                delivery_date: delivery_date, // キーと値のペアで送信
+                cellText: cellText, // キーと値のペアで送信
+                maxlot: maxlot, // キーと値のペアで送信
+            },
+        dataType: 'json',
+        success: function (response) {
+            console.log('Log sent successfully:', response);
+        },
+        error: function (xhr, status, error) {
+            console.error('Error sending log:', error);
+            alert('エラーが発生しました。再試行してください。');
+        }
+    });
+
+}
+
+//ボタンが押された時のログをajaxで記録する
+function btnlog(location,log_submit_url)
+{
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+    console.log(log_submit_url);
+    $.ajax({
+        url: log_submit_url, // ルートで定義されたURL
+        type: 'POST',
+            data: {
+                data: location // キーと値のペアで送信
+            },
+        dataType: 'json',
+        success: function (response) {
+            console.log('Log sent successfully:', response);
+        },
+        error: function (xhr, status, error) {
+            console.error('Error sending log:', error);
+            alert('エラーが発生しました。再試行してください。');
+        }
+    });
+}
+function maxlog(input_count,log_maxbtn_url)
+{
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+    console.log(log_submit_url);
+    $.ajax({
+        url: log_maxbtn_url, // ルートで定義されたURL
+        type: 'POST',
+            data: {
+                max_count: input_count // キーと値のペアで送信
+            },
+        dataType: 'json',
+        success: function (response) {
+            console.log('Log sent successfully:', response);
+        },
+        error: function (xhr, status, error) {
+            console.error('Error sending log:', error);
+            alert('エラーが発生しました。再試行してください。');
+        }
+    });
+}
+
+
 
 
 ////////////////////////////////
@@ -935,4 +1343,6 @@ async function getLocalIP() {
             .then((offer) => peerConnection.setLocalDescription(offer))
             .catch((error) => reject(error));
     });
+
+    
 }

@@ -32,10 +32,12 @@
     </form>
 
 </div>
+
 <div class="container-fluid">
     <div class="row justify-content-center">
         <form>
-            <input type="button" value="印刷" id="print_btn" class="btn btn--orange" onclick="window.print();">
+            <input type="button" value="印刷" id="print_btn" class="btn btn--orange" onclick="window.print(); btnlog('印刷', '{{ route('log.submit') }}');">
+
         </form>
         <div id="print_main" class="print_main_area">
         @foreach($print_arr as $value)
@@ -146,6 +148,7 @@
     </div>
 </div>
 <script>
+    var log_submit_url = "{{ route('log.submit') }}"
     // jsで最後の要素に改行刺せないようなcssを適応させる
     $(document).ready(function() {
         $('.page_break').last().css('page-break-after', 'avoid');
@@ -156,6 +159,32 @@
     window.addEventListener('popstate', function (event) {
         history.pushState(null, null, location.href);
     });
+
+    //ボタンが押された時のログをajaxで記録する
+    function btnlog(location,log_submit_url)
+    {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        console.log(log_submit_url);
+        $.ajax({
+            url: log_submit_url, // ルートで定義されたURL
+            type: 'POST',
+                data: {
+                    data: location // キーと値のペアで送信
+                },
+            dataType: 'json',
+            success: function (response) {
+                console.log('Log sent successfully:', response);
+            },
+            error: function (xhr, status, error) {
+                console.error('Error sending log:', error);
+                alert('エラーが発生しました。再試行してください。');
+            }
+        });
+    }
 </script>
 
 

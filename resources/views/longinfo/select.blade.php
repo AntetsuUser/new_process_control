@@ -79,13 +79,20 @@
         </div>
     </div>
 </div>    
+<script>
+    var log_url = "{{ route('log.select') }}"
+    var log_submit_url = "{{ route('log.submit') }}"
+</script>
 
 @if(config('app.env') === 'production')
+    <script src="{{secure_asset('js/log/select.js')}}" ></script>
+    <script src="{{secure_asset('js/log/submit.js')}}" ></script>
     <script src="{{secure_asset('js/longinfos/longinfo_select.js')}}" ></script>
 
 @else
+    <script src="{{asset('js/log/select.js')}}"></script>
+    <script src="{{asset('js/log/submit.js')}}"></script>
     <script src="{{asset('js/longinfos/longinfo_select.js')}}"></script>
-
 @endif
 
 @endsection

@@ -23,6 +23,10 @@ use App\Http\Controllers\QrReadController;
 use App\Http\Controllers\LogController;
 //サイネージコントローラー
 use App\Http\Controllers\SignageController;
+use Illuminate\Support\Facades\Auth;
+
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,47 +40,58 @@ use App\Http\Controllers\SignageController;
 */
 
 Route::get('/', function () {
-    // クッキーからUUIDを取得
-    $uuid = request()->cookie('uuid');
-    // dd($uuid);
-    if (!$uuid) {
-        // dd("uuidが登録されていません。システム担当に連絡してください");
-        // UUIDが存在しない場合、新しく生成
-        $uuid = (string) Str::uuid(); // UUIDを生成
-        
-        // クッキーに保存（有効期限は1年間）
-        cookie()->queue(cookie('uuid', $uuid, 60 * 24 * 365)); // 1年
 
-        // デバイスを特定してUUIDを更新
-        $device = Tablets::where('tablet_number', "ANT-TAB-005")->first();
 
-        if ($device) {
-            // デバイスが見つかった場合はUUIDを更新
-            $device->update(['uuid' => $uuid]);
-            // dd($uuid);
-        }
-    }else{
-        // UUIDが存在する場合、データベースで確認
-        $device = Tablets::where('uuid', $uuid)->first();
-        if ($device && $device->updated_at->lt(now()->subMonths(11))) {
-            // 新しいUUIDを生成
-            $newUuid = (string) Str::uuid();
 
-            // データベースのUUIDを更新
-            $device->update(['uuid' => $newUuid]);
 
-            // Cookieにも新しいUUIDを保存
-            cookie()->queue(cookie('uuid', $newUuid, 60 * 24 * 365)); // 1年
+    $user = Auth::user();
+
+    if (!$user) {
+        return redirect('/login');
+    }
+     // 現在日時から1年間の有効期限を計算
+    $expirationDate = Carbon::now()->addYear()->timestamp;
+
+    // クッキーにユーザー名と有効期限を保存
+    $username = cookie('username', $user->name, 525600); // 525600分 = 1年
+    $expiration = cookie('expiration', $expirationDate, 525600); // タイムスタンプ形式
+    $pa = cookie('pa', $expirationDate, 525600); // タイムスタンプ形式
+
+    if ($username && $expiration) {
+        $expirationDate = Carbon::createFromTimestamp($expiration);
+        $oneMonthBeforeExpiration = $expirationDate->subMonth();
+
+        // 現在日時が有効期限の1ヶ月前を過ぎていたら更新
+        if (Carbon::now()->greaterThanOrEqualTo($oneMonthBeforeExpiration)) {
+            $newExpirationDate = Carbon::now()->addYear()->timestamp;
+
+            // 新しいクッキーを作成
+            $cookieUsername = cookie('username', $username, 525600); // 1年
+            $cookieExpiration = cookie('expiration', $newExpirationDate, 525600);
+            $pa = cookie('expiration', $pa, 525600);
+
+            // 更新したクッキーをセット
+            return redirect()->intended('/')->withCookie($cookieUsername)->withCookie($cookieExpiration)->withCookie($pa);
         }
     }
+    //userが画面を表示させたときのログ
+    $user = Auth::user();
+    $logController = new LogController();
+    $logController->page_log($user->name, 'ホーム'); 
     return view('index');
 });
 
 //初回起動時にuser名を登録させる
+//ログイン
 Route::get('/login', [LoginController::class, 'login'])->name('login');
 Route::post('/login_entry', [LoginController::class, 'login_entry'])->name('login_entry');
+//サインイン
 Route::get('/signup', [LoginController::class, 'signup'])->name('signup');
 Route::post('/signup_entry', [LoginController::class, 'signup_entry'])->name('signup_entry');
+// ログアウト
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+
 
 //負荷予測関連
 route::prefix('/load_prediction')->controller(LoadPredictionController::class)->group(function()
@@ -87,9 +102,11 @@ route::prefix('/load_prediction')->controller(LoadPredictionController::class)->
     route::post('/process','process')->name('load_prediction.process');
     //負荷予測設備ごとの負荷率画面
     route::get('/load_prediction_machine','load_prediction_machine')->name('load_prediction.load_prediction_machine');
-
+    //設備の負荷の詳細グラフ
+    route ::post('load_prediction_graph','load_prediction_graph')->name('load_prediction.load_prediction_graph');
 
 });
+
 
 //長期情報関連
 route::prefix('/longinfo')->controller(LongInfoController::class)->group(function()
@@ -224,8 +241,27 @@ route::prefix('/history')->controller(HistoryController::class)->group(function(
 //ログ関連
 route::prefix('/log')->controller(LogController::class)->group(function()
 {
+
     //logメニュー画面
     route::post('/main','main')->name('log.main');
+    //ホーム画面のatagが押されたときにのajax
+    route::post('/atag','atag')->name('log.atag');
+    /////////////////////////////////////////////////////////////
+    //長期情報表示部分、指示書印刷部分
+    /////////////////////////////////////////////////////////////
+    //長期情報製造課選択画面のselectが押されたときにajax
+    route::post('/select','select')->name('log.select');
+    route::post('/submit','submit')->name('log.submit');
+    //モーダルの状態
+    route::post('/modal','modal')->name('log.modal');
+    //テーブル選択したときのログ
+    route::post('/selectedCellLog','selectedCellLog')->name('log.selectedCellLog');
+    //maxボタンを押したときのlog
+    route::post('/maxbtn','maxbtn')->name('log.maxbtn');
+    /////////////////////////////////////////////////////////////
+    //QRコード読み取り実績入力部分
+    /////////////////////////////////////////////////////////////
+    route::post('camera','camera')->name('log.camera');
     
 });
 

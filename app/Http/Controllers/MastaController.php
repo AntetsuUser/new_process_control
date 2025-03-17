@@ -30,6 +30,12 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 
+
+
+use Illuminate\Support\Facades\Auth;
+//Logコントローラー
+use App\Http\Controllers\LogController;
+
 class MastaController extends Controller
 {
     // サービスクラスとの紐付け
@@ -68,6 +74,9 @@ class MastaController extends Controller
     ///////////////////////////////////////////////////////////////////////////////////////////
     public function masta(Request $request)
     {
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, 'マスタ管理'); 
         return view('masta/masta');
     }
 
@@ -82,6 +91,9 @@ class MastaController extends Controller
         $DBname = 'number';
         $DBmodelname = 'Number';
         $number = $this->_mastacommonService->factoryDepartmentFind($DBname,$DBmodelname);  
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, '品目マスタ'); 
         return view('masta.number',compact('number'));
     }
 
@@ -98,6 +110,9 @@ class MastaController extends Controller
         $factory = $this->_mastacommonService->factory_get();
         //DBに登録してあるデータを取得してくる
         $numbers = $this->_numberService->number_get();
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, '品目追加、更新'); 
         return view('masta.number_insert',compact('factory','data','numbers','id'));
     }
     //品目確認画面
@@ -111,6 +126,9 @@ class MastaController extends Controller
             $id = $request->input('id');
             $id = json_decode($id, true);
         }
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, '品目確認'); 
         return view('masta.number_confirm',compact('number_params','id'));
     }
     //masta.number_store
@@ -265,7 +283,9 @@ class MastaController extends Controller
         $DBname = 'equipment';
         $DBmodelname = 'Equipment';
         $equipment = $this->_mastacommonService->factoryDepartmentFind($DBname,$DBmodelname);  
-
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, '設備マスタ'); 
         return view('masta.equipment', compact('equipment'));
     }
 
@@ -281,7 +301,12 @@ class MastaController extends Controller
             // idの工場・部署・名前をとってくる
             $data = $this->_mastacommonService->findById($DBname,$DBmodelname,$id);
         }
+
         $factory = $this->_mastacommonService->factory_get();
+
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, '設備追加・編集'); 
         return view('masta.equipment_insert', compact('data','factory'));
     }
     //設備確認画面
@@ -305,6 +330,9 @@ class MastaController extends Controller
             $id = $request->input('id');
         }
         // dd($data);
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, '設備確認'); 
         return view('masta.equipment_confirm', compact('data','id'));
     }
     //設備登録・追加
@@ -350,7 +378,9 @@ class MastaController extends Controller
         $DBname = 'worker';
         $DBmodelname = 'Worker';
         $worker = $this->_mastacommonService->factoryDepartmentFind($DBname,$DBmodelname);  
-
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, '作業者マスタ'); 
         return view('masta.worker', compact('worker'));
     }
 
@@ -367,7 +397,9 @@ class MastaController extends Controller
             $data = $this->_mastacommonService->findById($DBname,$DBmodelname,$id);
         }
         $factory = $this->_mastacommonService->factory_get();
-
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, '作業者追加・編集'); 
         return view('masta.worker_edit', compact('data','factory'));
     }
 
@@ -389,6 +421,9 @@ class MastaController extends Controller
             // 編集する人のid取得して確認画面に渡す
             $id = $request->input('id');
         }
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, '作業者追加・更新確認'); 
         return view('masta.worker_edit_confirm', compact('data', 'id'));
     }
 
@@ -433,7 +468,9 @@ class MastaController extends Controller
         $DBname = 'store';
         $DBmodelname = 'Store';
         $store = $this->_mastacommonService->factoryDepartmentFind($DBname,$DBmodelname);
-
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, 'ストアマスタ'); 
         return view('masta.store',compact('store'));
     }
     //ストア追加・編集画面
@@ -451,7 +488,9 @@ class MastaController extends Controller
             $data = $this->_mastacommonService->findById($DBname,$DBmodelname,$id);
         }
         $factory = $this->_mastacommonService->factory_get();
-
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, 'ストア追加・編集'); 
         return view('masta.store_edit',compact('factory','data'));
     }   
     //ストア登録確認画面
@@ -472,6 +511,9 @@ class MastaController extends Controller
             // 編集するid取得して確認画面に渡す
             $id = $request->input('id');
         }
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, 'ストア登録、編集確認'); 
         return view('masta.store_confirm',compact('data','id'));
     }
     //ストア登録・更新
@@ -526,6 +568,9 @@ class MastaController extends Controller
         //DBからのデータを取得する
         $holidayData =  $this->_calendarService->calendar_get();
 
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, 'カレンダマスタ'); 
         return view('masta.calendar',compact('year','holidayData'));
     }
     //calendar休日登録or削除
@@ -560,6 +605,10 @@ class MastaController extends Controller
         $parent_items = $this->_uploadService->get_parent_items();
         // dd($parent_items);
         // `with` メソッドを使って追加のデータをビューに渡す
+        
+        $user = Auth::user();
+        $logController = new LogController();
+        $logController->page_log($user->name, 'アップロード'); 
         return view('masta.upload', compact('longinfo_log','shipment_log','parent_items','up_log','material_log'));
     }
     //長期情報アップロード
@@ -574,6 +623,10 @@ class MastaController extends Controller
 
         //Excelファイルのデータをデータベースに登録する
         $this->_uploadService->create_table($filename,$uploadfile);
+
+        // dd("a");
+        //長期情報には数量情報がなく品番マスタには登録がある場合に数量0で登録する
+        $this->_uploadService->long_term_existence();
 
         return redirect()->route('masta.upload')->with([
             'tab' => $tab,
@@ -685,12 +738,16 @@ class MastaController extends Controller
 
         $uploadfile = $request->material_file->path();
         $filename = $request->file('material_file');
-        //開始日
+        // //開始日
         $start_date = $request->input('arrival_date');
 
+        // 材料台帳の支給残数をアップロードで取得してくる
+
+
         $id = $this->_uploadService->material_upload_log($filename,$category,$start_date);
-        //Excelファイルのデータをデータベースに登録する
+        // //Excelファイルのデータをデータベースに登録する
         $upload_flag = $this->_uploadService->material_data_upload($filename,$uploadfile,$start_date,$id);
+
         if($upload_flag == "true")
         {
             //アップロード成功

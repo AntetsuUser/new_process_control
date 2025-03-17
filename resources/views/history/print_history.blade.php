@@ -58,7 +58,7 @@
                 </thead>
                 @foreach($print_history as $data2 )
                 @if ($data2["input_complete_flag"] == "false" )
-                    <tr class="entered_row "  data-flag="true">
+                    <tr class="entered_row"  data-flag="true">
                         <td><a href="#"><button class="reprint_btn">再印刷</button></a></td>
                         <td>{{$data2["characteristic_id"]}}</td>
                         <td>{{$data2["item_name"]}}</td>
@@ -73,7 +73,7 @@
                         <td>{{$data2["workcenter"]}}</td>
                     </tr>
                 @else
-                    <tr class="entered_row " data-flag="false">
+                    <tr class="entered_row" data-flag="false">
                         <td><a href="#"><button class="reprint_btn">再印刷</button></a></td>
                         <td>{{$data2["characteristic_id"]}}</td>
                         <td>{{$data2["item_name"]}}</td>
@@ -92,7 +92,6 @@
             </table>
         </div>
     </div>
-
 </div>
 <script>
     //再印刷ボタンを押したとき

@@ -178,20 +178,20 @@ function ajax(URL,production,item_names,process)
                 row.append(idCell);
                 let space = $('<td class="blue_line"></td>').text(" "); // プロパティのキーを使用
                 row.append(space);
-                let stock = $('<td class="blue_line"></td>').text("102材料在庫：" + material_stock[key][0]); // プロパティのキーを使用
+                let stock = $('<td class="blue_line"></td>').text("102材料在庫：" + material_stock[key]["102"]); // プロパティのキーを使用
                 row.append(stock);
                 for(let i = 0;  i < dateArray.length; i++)
                 {
-                    let stock2 = $('<td class="blue_line"></td>').text(material_mark_arr["102"][key][i]); // プロパティのキーを使用
+                    let stock2 = $('<td class="blue_line"></td>').text(material_mark_arr[key]["102"][i]); // プロパティのキーを使用
                     row.append(stock2);
-                    let stock3 = $('<td class="blue_line"></td>').text(material_mark_arr["103"][key][i]); // プロパティのキーを使用
+                    let stock3 = $('<td class="blue_line"></td>').text(material_mark_arr[key]["103"][i]); // プロパティのキーを使用
                     row.append(stock3);
                 }
                 $('#dataBody').append(row);
                 row = $('<tr></tr>');
                 space = $('<td  class="black_line"></td>').text(" "); // プロパティのキーを使用
                 row.append(space);
-                stock = $('<td  class="black_line"></td>').text("103材料在庫:"+material_stock[key][1]); // プロパティのキーを使用
+                stock = $('<td  class="black_line"></td>').text("103材料在庫:"+material_stock[key]["103"]); // プロパティのキーを使用
                 row.append(stock);
                 for(let i = 0;  i < dateArray.length; i++)
                 {

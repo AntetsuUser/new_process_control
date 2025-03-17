@@ -10,7 +10,7 @@ class ProcessedHistoryRepository
    public function processed_history_get()
     {
         //ProcessedHistoryDBからすべてを取得してくる
-        return ProcessedHistory::all();
+        return ProcessedHistory::orderBy('id', 'desc')->paginate(50);
     }
 
     

@@ -109,7 +109,7 @@
                     </form>
                     <div class="button_arae">
                         <button class="button js_modal_open">実行</button>
-                        <a href="{{ route('qr.qrcamera') }}" class="button a_button">キャンセル</a>
+                        <a href="{{ route('qr.qrcamera') }}" class="button a_button js-cancel-link">キャンセル</a>
                     </div>
                 </div>
             </div>
@@ -117,6 +117,9 @@
     </div>
 
 
+<script> 
+    var log_camera_url = "{{ route('log.camera') }}" 
+</script>
 
 @if(config('app.env') === 'production')
 <script src="{{ secure_asset('./js/qr/input_confirmation.js') }}"></script>

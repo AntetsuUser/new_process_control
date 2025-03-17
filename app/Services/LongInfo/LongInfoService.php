@@ -22,6 +22,58 @@ class LongInfoService
     {
        return $this->_longinfoRepository->factory_get();
     }
+
+    //負荷予測（平準化予測）に必要な情報を求める
+    public function selectitem($line_numbers)
+    {
+        $process_list = [];
+        $process =  $this->_longinfoRepository->line_get_process($line_numbers);
+        foreach ($process as $key => $value) {
+            $item_name = $value["processing_item"];
+            // dd($value/);
+            if(strpos($item_name, '704'))
+            {   
+                if($value["process_number"] == 2)
+                {
+                    $process_list[$item_name][] = "704MC";
+                }else if($value["process_number"]  == 1){
+                    $process_list[$item_name][] = "組立";
+                }   
+            }
+            else if (strpos($item_name, '102') !== false) {
+                // $item_name に '102' が含まれている場合の処理
+                //親品番を検索
+                $item_data = $this->_longinfoRepository->find_parent($item_name);
+                
+                $item_data = $this->_longinfoRepository->find_parent($item_name);
+                foreach ($item_data as $item) {
+                    if($value["process_number"] == 2)
+                    {
+                        $process_list[$item["processing_item"]][] = "102MC";
+                    }else if($process_number == 1){
+                        $process_list[$item["processing_item"]][] = "102NC";
+                    }  
+                }
+            } elseif (strpos($item_name, '103') !== false) {
+                // $item_name に '103' が含まれている場合の処理
+                $item_data = $this->_longinfoRepository->find_parent($item_name);
+                foreach ($item_data as $item) {
+                    if($value["process_number"] == 2)
+                    {
+                        $process_list[$item["processing_item"]][] = "103MC";
+                    }else if($process_number == 1){
+                        $process_list[$item["processing_item"]][] = "103NC";
+                    }  
+                }
+            } 
+            else {
+                # code...
+            }
+        }
+    //    dd($process_list);
+        // dd($process_list);
+        return $process_list;
+    }
     //
     public function selectable($line_numbers)
     {
@@ -39,13 +91,13 @@ class LongInfoService
                 if (!in_array($process_edit, $process_list)) {
                     $process_list[] = $process_edit;
                 }
-            } elseif (strpos($item_name, '103') !== false) {
+            } else if (strpos($item_name, '103') !== false) {
                 // $item_name に '103' が含まれている場合の処理
                 $process_edit = "103" . $item_process;
                 if (!in_array($process_edit, $process_list)) {
                     $process_list[] = $process_edit;
                 }
-            } elseif (strpos($item_name, '704') !== false) {
+            } else if (strpos($item_name, '704') !== false) {
                 // $item_name に '704' が含まれている場合の処理
                 if ($item_process === "組立") {
                     if (!in_array($item_process, $process_list)) {
@@ -58,11 +110,80 @@ class LongInfoService
                     }
                 }
             }
-
         }
         
         // dump($process_list);
         return $process_list;
+    }
+
+    public function new_base_ability($info_process_arr,$selectitem)
+    {
+        //工程を最初抜き取る
+        $ability_arr = [];
+        $ability = 0.85;
+        foreach ($info_process_arr as $item_name => $process) {
+            foreach ($process as $key) {
+                //工程によって処理を分ける
+                if(strpos($key, '102') !== false)
+                {
+                    //親品番から子品番を求めてくる
+                    $child_number = $this->_longinfoRepository->child_number_acquisition($item_name,"child_part_number1");
+                    // $ability_arr[$key][$child_number]= [];
+                    // 102が含まれていた場合
+                    if(strpos($key, '/') !== false){
+                        //"/"が含まれていて子品番の工程が結合されている場合
+                        $process_number = 2;
+                        // 子品番と工程から加工時間とストアを取得してくる
+                        $process_information = $this->_longinfoRepository->acquisition_process_information($child_number,$process_number);
+                        $processing_time = $process_information['processing_time'];
+                        $store_count = count(explode(',',$process_information['store']));
+                        $average = floor(54000 / $processing_time * $ability * $store_count);
+                        $ability_arr[$key][$child_number]= $average;
+                    }else{
+                        if(strpos($key, 'NC') !== false){
+                            $process_number = 1;
+                            $ability = 0.75;
+                        }elseif(strpos($key, 'MC') !== false) {
+                            $process_number = 2;
+                        }
+                    }
+                }else if(strpos($key, '103') !== false){
+                    //親品番から子品番を求めてくる
+                    $child_number = $this->_longinfoRepository->child_number_acquisition($item_name,"child_part_number2");
+                    // 103が含まれていた場合
+                    if(strpos($key, '/') !== false){
+                        //"/"が含まれていて子品番の工程が結合されている場合
+                        $process_number = 2;
+                        // 子品番と工程から加工時間とストアを取得してくる
+                        $process_information = $this->_longinfoRepository->acquisition_process_information($child_number,$process_number);
+                        $processing_time = $process_information['processing_time'];
+                        $store_count = count(explode(',',$process_information['store']));
+                        $average = floor(54000 / $processing_time * $ability * $store_count);
+                        $ability_arr[$key][$child_number]= $average;
+                    }else{
+                        
+                    }
+                }else if($key == "組立"){
+                    //組立
+
+                    $ability_arr["組立"][$item_name] = 200;
+                }else if(strpos($key, '704') !== false){
+                    //704が含まれていた場合
+                    $process_number = 2;
+                        // 子品番と工程から加工時間とストアを取得してくる
+                    $process_information = $this->_longinfoRepository->acquisition_process_information($item_name,$process_number);
+                    $processing_time = $process_information['processing_time'];
+                    $store_count = count(explode(',',$process_information['store']));
+                    $average = floor(54000 / $processing_time * $ability * $store_count);
+                    $ability_arr[$key][$item_name]= $average;
+                }else{
+                    // それ以外
+                }
+                // $ability_arr[$key] = [];
+            }
+        }
+        // dd($ability_arr);
+        return $ability_arr;
     }
 
 
@@ -377,6 +498,32 @@ class LongInfoService
         }
     }
 
+    //品番の単体品番を取得
+    public function single_number($info_process_arr)
+    {
+        $single_item_arr = [];
+        foreach ($info_process_arr as $item_name => $process) {
+            //単体品番を取得してくる
+            $single_items = $this->_longinfoRepository->single_items_get($item_name);
+            foreach ($single_items as $key => $value) {
+                if(strpos($value, "102") !== false)
+                {
+                    //102の
+                    $single_item_arr[$item_name]["102NC/MC"] = $value;
+                }elseif(strpos($value, "103") !== false)
+                {
+                    //103の
+                    $single_item_arr[$item_name]["103NC/MC"] = $value;
+                }
+                else {
+                }
+            }
+        }
+        return $single_item_arr;
+    }
+
+
+
     // 日付と曜日の取得
     public function date_get()
     {
@@ -603,6 +750,11 @@ class LongInfoService
             $this->_longinfoRepository->info_calculation($parent_name,$info_process,$delivery_date,$processing_quantity);
         }
 
+        //////////////////////////////////////////////////////////////////////
+        //704なら
+        //////////////////////////////////////////////////////////////////////
+
+
 
         //////////////////////////////////////////////////////////////////////
         //在庫の増減処理
@@ -679,17 +831,205 @@ class LongInfoService
                 $reduce_stock_names = [
                     "process" . ($process_number - 1) . "_stock"
                 ];
+
             }
         }
         // DBで在庫の増減をする
         $this->_longinfoRepository->increase_stock($increase_stock_names, $processing_quantity, $parent_name, $reduce_stock_names);
-        //親品番から材料を取得して在庫DBから加工分消す
+        //親品番から
+        $this->_longinfoRepository->creation_count($parent_name,$processing_quantity);
+        
     }
 
     public function get_in_work()
     {
         return $this->_longinfoRepository->get_in_work();
     }
+    
+    public function sin_material_mark($info_process_arr,$quantity_arr,$date_arr)
+    {
+        
+        // dump($info_process_arr);
+        // dump($quantity_arr);
+        // dump($date_arr);
+
+        $process_stock = [];
+        $number_used_material = [];
+        $material_stock =[];
+        $use_number = [];
+        $calculation = [];
+        //加工できる品番の工程が入っている
+        // 品番の工程在庫を取得してくる
+        $item_stock = [];
+        // dd($quantity_arr);
+        foreach ($quantity_arr as $item_name => $value) {
+            //工程結合判定を取得してくるget_join_flag($item_name)
+
+            $process_join_flag = $this->_longinfoRepository->get_join_flag($item_name);
+            //　ｃflagが1なら子品番のNCとMC工程結合
+            //品番の工程在庫を取得してくる
+            $item_process_stock = $this->_longinfoRepository->get_stock($item_name);
+            //出荷を加味した在庫を取得してくるshipment_count<-DB
+            $complete_stocks = $this->_longinfoRepository->get_complete_stock($item_name);
+
+            //出荷や一週間の作成個数を計算する
+            $complete_stock = $stock_count = intval($complete_stocks["before_update_count"]) + intval($complete_stocks["made_count"]);
+            $complete_stock2 = $stock_count = intval($complete_stocks["before_update_count"]) + intval($complete_stocks["made_count"] - intval($complete_stocks['shipment_count']));
+
+            if($process_join_flag)
+            {
+                //7製造の場合
+                // 結合判定が1ならMCの工程在庫を一緒にして配列に入れる
+                $item_stock[$item_name]["102"] = $item_process_stock["process2_stock"] + $item_process_stock["process5_stock"] + $complete_stock;
+                $item_stock[$item_name]["103"] = $item_process_stock["process4_stock"] + $item_process_stock["process5_stock"] + $complete_stock;
+
+                $calculation[$item_name]["102"] = $item_process_stock["process2_stock"] + $item_process_stock["process5_stock"] + $complete_stock2;
+                $calculation[$item_name]["103"] = $item_process_stock["process4_stock"] + $item_process_stock["process5_stock"] + $complete_stock2;
+            }
+            else {
+                //それぞれの工程在庫を取得
+                $item_stock[$item_name]["102"] = $item_process_stock["process1_stock"] + $item_process_stock["process2_stock"] + $item_process_stock["process5_stock"] + $complete_stock;
+                $item_stock[$item_name]["103"] = $item_process_stock["process3_stock"] + $item_process_stock["process4_stock"] + $item_process_stock["process5_stock"] + $complete_stock;
+
+                $calculation[$item_name]["102"] = $item_process_stock["process1_stock"] + $item_process_stock["process2_stock"] + $item_process_stock["process5_stock"] + $complete_stock2;
+                $calculation[$item_name]["103"] = $item_process_stock["process3_stock"] + $item_process_stock["process4_stock"] + $item_process_stock["process5_stock"] + $complete_stock2;
+            }
+            //加工品番から子品番を求めて材料品番を取得してくる
+
+            $child_number = $this->_longinfoRepository->child_number_get($item_name,704);
+            $child_number_arr = $child_number->toArray();
+            $material_stock_quantity =[];
+            foreach ($child_number_arr as $key2 => $value2) {
+                //子品番から材料品番を取得してくる
+                $material_number = $this->_longinfoRepository->material_number_get($value2);
+                $material_stock_count = $this->_longinfoRepository->material_for_mark($material_number);
+                $material_stock[$material_number] = (int)$material_stock_count;
+                $number_used_material[$material_number][] = $item_name;
+            }
+        }
+
+        // dump($item_stock);
+        // dump($calculation);
+        $material_array = [];
+
+        $materialmark_array = [];
+        foreach ($quantity_arr as $key => $value) {
+            $material_array[$key]["102"] = $value[0];
+            $material_array[$key]["103"] = $value[0];
+            foreach ($value[0] as $key2 => $value2) {
+                $materialmark_array[$key]["102"][] = "　";
+                $materialmark_array[$key]["103"][] = "　";
+            }
+        }
+        
+        $days = [];
+        //材料台帳の支給残数から工程在庫を引いた数を求める
+        foreach ($material_array as $name => $quantities) {
+
+            foreach ($quantities as $index => $quantity) {
+                $days = $quantity;
+                foreach ($quantity as $key => $value) 
+                {
+                    if($value == 0)
+                    {
+                        continue;
+                    }
+                    // 在庫が0以下なら処理を中断
+                    if ($item_stock[$name][$index] <= 0) {
+                        break;
+                    }
+                    if ($item_stock[$name][$index] >= $value) {
+                        // そのまま引ける場合
+                        $item_stock[$name][$index] -= $value;
+                        $material_array[$name][$index][$key] = 0; // 実際に引いた数を上書き
+                        $materialmark_array[$name][$index][$key] = "●";
+
+                    } else {
+                        if($material_array[$name][$index][$key] > 0)
+                        {
+                            // 在庫が足りない場合、残り全部を引く
+                            $material_array[$name][$index][$key] = $material_array[$name][$index][$key] - $item_stock[$name][$index]; // 実際に引いた数を上書き
+
+                            $item_stock[$name][$index] = 0;
+                            $materialmark_array[$name][$index][$key] = "○";
+                        }else
+                        {
+                            $item_stock[$name][$index] = 0;
+                        }
+                    }
+                }
+            }
+        }
+        $remaining = [];
+        foreach ($number_used_material as $material_name => $use_numbers) {
+
+            $process_sum = 0;
+            $process = "";
+            foreach ($use_numbers as $index => $process_item_number) {
+                if (strpos($material_name, "102") !== false) {
+                    // "102" が含まれている場合の処理
+                    $process_sum += $calculation[$process_item_number]["102"];
+                    $process = "102"; 
+                } elseif (strpos($material_name, "103") !== false) {
+                    // "103" が含まれている場合の処理
+                    $process_sum += $calculation[$process_item_number]["103"];
+                    $process = "103"; 
+                }
+            }
+            $remaining_count = $material_stock[$material_name] - $process_sum;
+            $remaining[$material_name] = $remaining_count;
+            foreach ($use_numbers as $index => $process_item_number) {
+                if (strpos($material_name, "102") !== false) {
+                    // "102" が含まれている場合の処理
+                    $process_sum += $calculation[$process_item_number]["102"];
+                    $process = "102"; 
+                } elseif (strpos($material_name, "103") !== false) {
+                    // "103" が含まれている場合の処理
+                    $process_sum += $calculation[$process_item_number]["103"];
+                    $process = "103"; 
+                }
+                $remaining_arr[$process_item_number][$process] = $remaining_count;
+            }
+        }
+        $material_stock = [];
+        foreach ($days as $key => $value) {
+            $process  = "";
+            foreach ($number_used_material as $material_name => $use_numbers) {
+                foreach ($use_numbers as $index => $process_item_number) {
+                    if (strpos($material_name, "102") !== false) {
+                        // "102" が含まれている場合の処理
+                        $process = "102";
+                    } elseif (strpos($material_name, "103") !== false) {
+                        // "103" が含まれている場合の処理
+                        $process = "103";
+                    }
+                    if($material_array[$process_item_number][$process][$key] == 0)
+                    {
+                        continue;
+                    }
+                    if ($remaining[$material_name] <= 0) {
+                        break;
+                    }
+                    if ($remaining[$material_name] >= $material_array[$process_item_number][$process][$key]) {
+                        // そのまま引ける場合
+                        $remaining[$material_name] -= $material_array[$process_item_number][$process][$key];
+                        $material_array[$process_item_number][$process][$key] = 0; // 実際に引いた数を上書き
+                        $materialmark_array[$process_item_number][$process][$key] = "●";
+
+                    } else {
+                        // 在庫が足りない場合、残り全部を引く
+                        $material_array[$process_item_number][$process][$key] = $material_array[$process_item_number][$process][$key] - $remaining[$material_name]; // 実際に引いた数を上書き
+
+                        $remaining[$material_name] = 0;
+                        $materialmark_array[$process_item_number][$process][$key] = "○";
+                    }
+                }
+            }
+        }
+        return [$materialmark_array,$remaining_arr];
+    }
+
+
     //材料の在庫を取得してくる
     public function material_stock($send_arr)
     {
@@ -799,19 +1139,97 @@ class LongInfoService
                             $material_mark_arr["103"][$processing_name][$key] = "○";
                         }
                     }
-                    // dump($processing_name);
-                    // dump("材料在庫元: ".$material_stock[$material_name]);
-                    // dump("長期数量: ".$data_contained[$processing_name][$key]["target"]);
-                    // dump("計算結果: ".$variable);
                 }
             }
         }
         // dd("end");
         return $material_mark_arr;
     }
+    //平準化用の配列を作成
+    public function base_ability($quantity_arr,$date_arr,$line_numbers)
+    {
+        $item_average = [];
+        //$line_numbersにストアがふくまれていた場合
+        if(strpos($line_numbers, "ストア") !== false)
+        {
+            $process = $this->_longinfoRepository->line_get_process($line_numbers);
+            foreach ($process as $index => $value) {
+                $processing_item = $value['processing_item'];
+                $ability= 0.85;
+                $item = $processing_item;
+                $item_average["組立"][$item] = 200;
+            }
+        }else
+        {
+            //ストア以外
+            $process = $this->_longinfoRepository->line_get_process($line_numbers);
+            foreach ($process as $key => $value) {
+                //加工品目名
+                $processing_item_name =  $value['processing_item'];
+                //加工工程名
+                $process_name =  $value['process'];
+                if($process_name == "NC")
+                {
+                    //NC工程
+                    //NCの能力は75％で計算する
+                    $ability= 0.75;
+
+                }elseif($process_name == 'M/C')
+                {
+                    //MC工程
+                    //NCの能力は85％で計算する
+                    $ability= 0.85;
+                    // dump($processing_item_name);
+                    //processing_itemの中の102,103,704などで品番を判定する
+                    if(strpos($processing_item_name, "102") !== false ){
+                        //102が含まれていた場合
+                        $item_number = "102MC";
+                        $processing_time = $value['processing_time'];
+                        $store_count = count(explode(',',$value['store']));
+                        $average = floor(54000 / $processing_time * $ability * $store_count);
+                        $Parent_Items = $this->_longinfoRepository->get_Parent_Item_Number($processing_item_name);
+                        foreach ($Parent_Items as $item_index => $parent_item) {
+                            $item_average[$item_number][$processing_item_name] = $average;
+                        }
+
+                    }elseif(strpos($processing_item_name, "103") !== false ){
+                        //103が含まれていた場合
+                        $item_number = "103MC";
+                        $processing_time = $value['processing_time'];
+                        $store_count = count(explode(',',$value['store']));
+                        $average = floor(54000 / $processing_time * $ability * $store_count);
+                        $Parent_Items = $this->_longinfoRepository->get_Parent_Item_Number($processing_item_name);
+                        foreach ($Parent_Items as $item_index => $parent_item) {
+                            $item_average[$item_number][$processing_item_name]= $average;
+                        }
+
+                    }elseif(strpos($processing_item_name, "704") !== false ){
+                        //704が含まれていた場合
+                        //配列初期宣言
+                        $item_number = "704MC";
+                        $processing_time = $value['processing_time'];
+                        $store_count = count(explode(',',$value['store']));
+                        //15時間÷加工時間×能力×ストアの数
+                        $average = floor(54000 / $processing_time * $ability * $store_count);
+
+                        $item_average[$item_number][$processing_item_name] = $average;
+
+                    }else{
+                        //それ以外の追加が来た時
+                    }
+                }else{
+                    //それ以外の追加が来た時
+                }
+
+            }
+            // dd($item_average);
+            
+        }
+        return $item_average;
+    }
 
     /*
-        親品番と加工工程と材料のカラム名をもらって
+        親品番と加工工程と材料のカラム名をもらって在庫の増減
         もらう値
         $parent_name 
         $process

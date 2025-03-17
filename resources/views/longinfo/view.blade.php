@@ -20,11 +20,9 @@
         </div>
         <div class="col-md-1">
             <button id="print" class="btn main_btn print">印刷</button>
-
         </div>
         <div class="col-md-1">
             <button id="help_btn" class="btn">色の説明</button>
-
         </div>
     </div>
 </div>
@@ -78,7 +76,7 @@
                     <h1 class="help_title">色の役割</h1>
                     <div class="flex"><p>選択可能なセル</p><div class="color_box set_cel">残12</div></div>
                     <div class="flex"><p>リードタイム</p><div class="color_box read_time">残12</div></div>
-                    <div class="flex"><p>負荷予測</p><div class="color_box read_time today_task">残12</div></div>
+                    <div class="flex"><p>負荷予測(平準化予測)</p><div class="color_box read_time today_task">残12</div></div>
                     <div class="flex"><p>数量選択時</p><div class="color_box selected">残12</div></div>
                     <div class="flex"><p>現在作業中</p><div class="color_box in_work">残12</div></div>
                 </div>
@@ -121,16 +119,20 @@
                             <tr>
                                 <td class="bottom_black info_backcolor info_item" rowspan="2">{{ $key }}</td>
                                 <td class="info_backcolor"></td>
-                                <td class="right_black info_backcolor">102素材在庫:{{ $material_arr[$key][0] }}</td>
+                                <td class="right_black info_backcolor">102素材在庫:{{ $material_arr[$key]["102"] }}</td>
+                                {{-- <td class="right_black info_backcolor">102素材在庫:</td> --}}
                                 @for ($i = 0; $i <= count($date_arr[0]); $i++)
-                                    <td class="info_backcolor mark_area right_border"><div class="mark_icon">{{ $material_mark_arr["102"][$key][$i] }}</div></td>
-                                    <td class="info_backcolor mark_area "><div class="mark_icon">{{ $material_mark_arr["103"][$key][$i] }}</div></td>
+                                    {{-- <td class="info_backcolor mark_area right_border"><div class="mark_icon"></div></td>
+                                    <td class="info_backcolor mark_area "><div class="mark_icon"></div></td> --}}
+                                    <td class="info_backcolor mark_area right_border"><div class="mark_icon">{{ $material_mark_arr[$key]["102"][$i] }}</div></td>
+                                    <td class="info_backcolor mark_area "><div class="mark_icon">{{ $material_mark_arr[$key]["103"][$i] }}</div></td>
                                 @endfor
                             </tr>
                             <tr>
                                 <td class="bottom_black info_backcolor" hidden></td>
                                 <td class="bottom_black info_backcolor"></td>
-                                <td class="bottom_black right_black info_backcolor">103素材在庫:{{ $material_arr[$key][1] }}</td>
+                                <td class="bottom_black right_black info_backcolor">103素材在庫:{{ $material_arr[$key]["103"] }}</td>
+                                {{-- <td class="bottom_black right_black info_backcolor">103素材在庫:</td> --}}
                                 @for ($i = 0; $i <= count($date_arr[0]); $i++)
                                 
                                     @if($quantity_arr[$key][0][$i] === "" or $quantity_arr[$key][0][$i] === 0)
@@ -144,7 +146,12 @@
                             @foreach ($process as $process_key => $data)
                                 <tr>
                                     @if ($loop->last)
-                                        <td class="top_blue"><p hidden>0/{{ $lot_arr[$key][$process_key] }}</p></td>
+                                        <td class="top_blue">
+                                            <p hidden >0/{{ $lot_arr[$key][$process_key] }}</p>
+                                            @if (isset($single_number[$key][$data]))
+                                                    {{ $single_number[$key][$data]  }}
+                                            @endif
+                                        </td>
                                         <td class="top_blue">{{ $data }}</td>
                                         <td class="top_blue right_black">完{{ preg_replace('/\d+/', '', $data) }}在庫：{{ $stock_arr[$key]["process"][$process_key] }}</td>
                                         @for ($i = 0; $i <= count($date_arr[0]); $i++)
@@ -155,7 +162,12 @@
                                             @endif
                                         @endfor
                                     @else
-                                        <td><p hidden>0/{{ $lot_arr[$key][$process_key] }}</p></td>
+                                        <td>
+                                            <p hidden>0/{{ $lot_arr[$key][$process_key] }}</p>
+                                            @if (isset($single_number[$key][$data]))
+                                                    {{ $single_number[$key][$data]  }}
+                                            @endif
+                                        </td>
                                         <td>{{ $data }}</td>
                                         <td class="right_black">完{{ preg_replace('/\d+/', '', $data) }}在庫：{{ $stock_arr[$key]["process"][$process_key] }}</td>
                                         @for ($i = 0; $i <= count($date_arr[0]); $i++)
@@ -178,11 +190,19 @@
         </div>
     </div>
 </div>
+
 <div hidden id="data-container" data-data="{{ json_encode($work_arr) }}"></div>
 <input type="hidden" name="process_able_area" id="process_able_area" value="{{ $selectable_json }}">
 <script>
+    var log_submit_url = "{{ route('log.submit') }}"
+    var log_modal_url = "{{ route('log.modal') }}"
+    var log_selectcell_url = "{{ route('log.selectedCellLog') }}"; // Laravel Blade内でURLを取得
+    var log_maxbtn_url = "{{ route('log.maxbtn') }}"; // Laravel Blade内でURLを取得
+
+    let selectitem =  @json($selectitem);
     var line = @json($line);
     var numbers = @json($numbers);
+    var base_ability = @json($base_ability);
     var factory = @json($factory);
     var department = @json($department);
     var workers = @json($workers);
@@ -246,9 +266,9 @@
 
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
-                console.log('タブが非アクティブになりました');
+                // console.log('タブが非アクティブになりました');
             } else {
-                console.log('タブがアクティブになりました');
+                // console.log('タブがアクティブになりました');
             }
         });
     });
