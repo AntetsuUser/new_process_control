@@ -1,1 +1,4 @@
-/.env
+\.env
+\public\sozai.json
+\public\item_sort_order.json
+\storage\
