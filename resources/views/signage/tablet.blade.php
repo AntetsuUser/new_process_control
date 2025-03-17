@@ -12,6 +12,10 @@
 
 @section('content')
 
+<div class="browser_back_area">
+    <a href="{{ route('signage.tablet') }}"><img class="back_btn" src="{{ asset('img/icon/back.png') }}" alt=""><span>戻る</span></a>
+</div>
+
 <div class="filtering_area">
     <input id="production" type="hidden" name="production" value="{{ $production }}">
     <div id="item_checkbox_area" class="checkbox_area">
