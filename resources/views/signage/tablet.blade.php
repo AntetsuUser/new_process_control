@@ -15,8 +15,12 @@
 <div class="filtering_area">
     <input id="production" type="hidden" name="production" value="{{ $production }}">
     <div id="item_checkbox_area" class="checkbox_area">
-        <input type="text" name="select_item_name" id="select_item_name" readonly placeholder="品目を選択してください"> <!-- readonly属性を追加 -->
+        <input type="text" name="select_item_name" id="select_item_name" value="すべて" readonly placeholder="品目を選択してください"> <!-- readonly属性を追加 -->
         <div class="check_box" style="display: none;">
+            <label>
+                <input type="checkbox" name="all" value="すべて" class="item-checkbox" checked/>
+                <span>すべて</span>
+            </label>
             @foreach ($item_names as $name)
             <label>
                 <input type="checkbox" name="{{ $name }}" value="{{ $name }}" class="item-checkbox"/>

@@ -11,33 +11,69 @@ $(document).ready(function() {
 
 
 
-    // アイテムセクション（変更なし）
+    // アイテムセクション（プロセスセクションに似せる）
     let itemTextBox = $('#select_item_name');
     let itemCheckBoxDiv = $('#item_checkbox_area .check_box');
     let itemCheckboxes = $('#item_checkbox_area .item-checkbox');
+    let allItemCheckbox = itemCheckboxes.filter('[value="すべて"]'); // "すべて"のチェックボックス
 
     // アイテムテキストボックスがクリックされたとき
     itemTextBox.on('click', function() {
+        let checkedItems = itemCheckboxes.filter(':checked').map(function() {
+            return $(this).val();
+        }).get();
+        if (checkedItems.length == 0) {
+            itemTextBox.val("すべて");
+            allItemCheckbox.prop('checked', true);
+        }
+
         itemCheckBoxDiv.show(); // アイテムチェックボックスを表示
     });
 
     // アイテムチェックボックスの状態が変更されたとき
     itemCheckboxes.on('change', function() {
+        // チェックされたアイテムの値を取得
         let checkedItems = itemCheckboxes.filter(':checked').map(function() {
             return $(this).val();
         }).get();
 
-        if (checkedItems.length > 0) {
-            itemTextBox.val(checkedItems.join(', '));
+        let clickedValue = $(this).val(); // クリックされたチェックボックスの値
+        console.log(clickedValue);
+        // チェックボックスが「すべて」の場合
+        if (clickedValue === "すべて") {
+            if (checkedItems.includes("すべて") && checkedItems.length > 1) {
+                itemCheckboxes.prop('checked', false);
+                allItemCheckbox.prop('checked', true);
+                itemTextBox.val("すべて");
+            }
         } else {
-            itemTextBox.val(''); // 空にする
+            // 「すべて」が選択されていない場合
+            if (checkedItems.includes("すべて")) {
+                allItemCheckbox.prop('checked', false);
+            }
+
+            // チェックされたアイテムをテキストボックスに追加
+            let currentText = itemTextBox.val();
+            let updatedText = checkedItems.join(', '); // チェックされた値をカンマ区切りで結合
+
+            // テキストボックスに新しい値を設定
+            itemTextBox.val(updatedText);
         }
 
-        // いずれかのチェックボックスが選択されているか確認
-        if (itemCheckboxes.is(':checked')) {
-            itemCheckBoxDiv.show();
-        }
+        // チェックボックスが外れた場合、その値をテキストボックスから削除する処理
+        itemCheckboxes.each(function() {
+            if (!$(this).is(':checked')) {
+                let valueToRemove = $(this).val();
+                let currentText = itemTextBox.val();
+                let updatedText = currentText.split(', ').filter(function(item) {
+                    return item !== valueToRemove; // 外す値をフィルタリング
+                }).join(', ');
+
+                itemTextBox.val(updatedText); // 更新されたテキストを設定
+            }
+        });
     });
+
 
     // プロセスセクション
     let processTextBox = $('#select_process');
@@ -103,20 +139,21 @@ $(document).ready(function() {
     });
 
     // ドキュメントがクリックされたときにチェックボックスを非表示にする
-    $(document).on('click', function(event) {
-        // チェックボックスが表示されている状態で、チェックボックスやテキストボックスがクリックされた場合には非表示にしない
-        if (!itemTextBox.is(event.target) && !processTextBox.is(event.target) &&
-            !itemCheckBoxDiv.is(event.target) && !itemCheckBoxDiv.has(event.target).length &&
-            !processCheckBoxDiv.is(event.target) && !processCheckBoxDiv.has(event.target).length) {
-            itemCheckBoxDiv.hide(); // 外側をクリックしたらアイテムチェックボックスを非表示
-            processCheckBoxDiv.hide(); // 外側をクリックしたらプロセスチェックボックスを非表示
-        }
-    });
+   $(document).on('click', function(event) {
+    // チェックボックスが表示されている状態で、チェックボックスやテキストボックスがクリックされた場合には非表示にしない
+    if (!itemTextBox.is(event.target) && !processTextBox.is(event.target) &&
+        !itemCheckBoxDiv.is(event.target) && !itemCheckBoxDiv.has(event.target).length &&
+        !processCheckBoxDiv.is(event.target) && !processCheckBoxDiv.has(event.target).length) {
+        itemCheckBoxDiv.hide(); // 外側をクリックしたらアイテムチェックボックスを非表示
+        processCheckBoxDiv.hide(); // 外側をクリックしたらプロセスチェックボックスを非表示
+    }
+});
 
     // 更新ボタンが押されたときの処理
     $("#update_button").click(function() {
         $('#dataBody').empty();
         let items = checkbox_confirmation(".item-checkbox");
+        console.log(items);
         if (items.length === 0) {
             alert("品目集約が選択されていません");
             return; // 処理を終了

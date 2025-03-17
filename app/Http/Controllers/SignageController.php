@@ -126,6 +126,11 @@ class SignageController extends Controller
         //工程
         $process = $request->process;
 
+        //選択された品番が全ての場合製造課に登録されている品目名称全て取得してくる
+        if($item_names[0] ==  "すべて")
+        {
+            $item_names = $this->_signageService->get_item_names($production);
+        }
         //選択された品目集約の品目を取得し、テーブルが存在する品番を取得する
         $items = $this->_signageService->acquisition_from_item_aggregation($item_names);
 
