@@ -31,6 +31,9 @@ class LoginController extends Controller
 
         // 全てのクッキーを取得
         $cookies = request()->cookies->all();
+        if (!isset($cookies["username"]) || !isset($cookies["pa"])) {
+            return view('login');  // クッキーが無い場合、login ビューにリダイレクト
+        }
         // dd($cookies);
         $username = $cookies["username"];
         $password = $cookies["pa"];

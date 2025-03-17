@@ -71,7 +71,7 @@ class SignageService
         $item_arr = $this->_signageRepository->get_items($department);
         //
         //jsonの配列を取得してくる
-        $file_path = '/home/pi/Desktop/process_control/public/item_sort_order.json';
+        $file_path = 'C:\Users\ishihara\Desktop\git\new_process_control\public\item_sort_order.json';
         $json_data = file_get_contents($file_path);
         // JSONデータを配列にデコード
         $data = json_decode($json_data, true);
