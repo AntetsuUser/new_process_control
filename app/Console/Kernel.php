@@ -28,6 +28,9 @@ class Kernel extends ConsoleKernel
 
         // 材料在庫の更新をするコマンドを設定
         $schedule->command('material:update')->dailyAt('04:30');  // 毎日 04:30 に材料在庫の更新を実行
+
+        // 30日以上前の指示書でまだ未処理の物を処理済みにするコマンドを設定
+        $schedule->command('data:process-expired')->dailyAt('05:00');  // 毎日 04:30 に材料在庫の更新を実行
     }
 
     /**
