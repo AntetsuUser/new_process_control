@@ -16,6 +16,19 @@
     <a href="{{ route('signage.tablet') }}"><img class="back_btn" src="{{ asset('img/icon/back.png') }}" alt=""><span>戻る</span></a>
 </div>
 
+<div class="wrapper_div">
+    <div class="wrapper">
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="shadow"></div>
+    <div class="shadow"></div>
+    <div class="shadow"></div>
+    <span>Loading</span>
+</div>
+
+</div>
+
 <div class="filtering_area">
     <input id="production" type="hidden" name="production" value="{{ $production }}">
     <div id="item_checkbox_area" class="checkbox_area">

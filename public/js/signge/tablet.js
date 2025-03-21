@@ -151,6 +151,8 @@ $(document).ready(function() {
 
     // 更新ボタンが押されたときの処理
     $("#update_button").click(function() {
+        //ロード画面を表示させる
+        $(".wrapper_div").fadeIn();
         $('#dataBody').empty();
         let items = checkbox_confirmation(".item-checkbox");
         console.log(items);
@@ -276,6 +278,11 @@ function ajax(URL,production,item_names,process)
             });   
             lead_time_coloring()
             in_work_cell()
+            //ロード画面を非表示にする
+            setTimeout(function() {
+                // 処理が終わったら非表示にする
+                $(".wrapper_div").fadeOut();
+            }, 100); // 3秒後に非表示
         },
         error: function(xhr, status, error) {
             console.error('Error Status:', status); // エラーのステータス

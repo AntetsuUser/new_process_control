@@ -11,7 +11,7 @@
 
 @section('content')
 {{-- テストですよ --}}
-<div>自動更新テスト3ですよ</div>
+
 
 <div class="aaa"></div>
 <div class="container">
