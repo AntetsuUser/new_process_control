@@ -151,6 +151,11 @@ $(document).ready(function() {
 
     // 更新ボタンが押されたときの処理
     $("#update_button").click(function() {
+        let btn = $(this); // ボタンの参照
+        if (btn.prop("disabled")) {
+            return; // 既に無効化されていたら処理しない
+        }
+        btn.prop("disabled", true); // ボタンを無効化
         //ロード画面を表示させる
         $(".wrapper_div").fadeIn();
         $('#dataBody').empty();
@@ -173,7 +178,11 @@ $(document).ready(function() {
 
         }
         //URLと製造課と品目集約と工程をajaxに渡す
-        ajax(URL,production,items,process)
+        // URLと製造課と品目集約と工程をAJAXに渡す
+    ajax(URL, production, items, process).always(function() {
+        btn.prop("disabled", false); // AJAX完了後にボタンを有効化
+    });
+
     });
 });
 
@@ -192,7 +201,7 @@ function checkbox_confirmation(class_name) {
 function ajax(URL,production,item_names,process)
 {
     
-    $.ajax({
+    return $.ajax({
         url: URL,  // リクエストのURL
         type: 'POST',           // リクエストメソッド
         data: {
@@ -279,10 +288,7 @@ function ajax(URL,production,item_names,process)
             lead_time_coloring()
             in_work_cell()
             //ロード画面を非表示にする
-            setTimeout(function() {
-                // 処理が終わったら非表示にする
-                $(".wrapper_div").fadeOut();
-            }, 100); // 3秒後に非表示
+            setTimeout(() => $(".wrapper_div").fadeOut(), 100);
         },
         error: function(xhr, status, error) {
             console.error('Error Status:', status); // エラーのステータス
