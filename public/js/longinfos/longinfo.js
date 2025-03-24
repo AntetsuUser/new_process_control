@@ -67,21 +67,25 @@ function in_work_cell() {
                     return false; // ループから抜ける
                 }
             });
-
+            let select_process = "";
             if (item_row != undefined && item_flag ==true) {
                 let table_tr_index = $("#info_table tbody tr");
                 let numberOfRows = table_tr_index.length;
 
                 for (let index = item_row; index < numberOfRows; index++) {
                     let process = table_tr_index.eq(index).find("td:nth-child(2)").text();
+                    console.log(process);
+                    console.log(element['process']);
                     if (process == element['process']) {
                         row = index;
+                        select_process = process;
                         break;
                     }
+                    
                 }
             }
 
-            if (row != undefined && col != undefined && item_flag ==true) {
+            if (row != undefined && col != undefined && item_flag ==true && select_process == element['process']) {
 
                 $("#info_table tbody tr").eq(row).find('td').eq(col).addClass('in_work');
             }
